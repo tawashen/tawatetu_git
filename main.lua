@@ -177,13 +177,23 @@ CURRENT_CARD_AFTER = {} --移動後カードテーブル
 
 menuState = { --menuState構造体 到着前メニュー
   currentMenu = "main", --現在のメニュー判別用キー
-  mainMenu = {
+  mainMenu = { --"main"
     items = {"サイコロ", "カード", "その他"},
     selected = 1
   },
 
-  cardMenu = { --カード使用時のメニュー
+  cardMenu = { --カード使用時のメニュー "card"
     items = current_card_before_names,
+    selected = 1
+  },
+
+  cardDropMenu = { --カードを捨てる用メニュー "carddrop"
+    items = current_card_before_names,
+    selected = 1
+  },
+
+  cardMainMenu = { --"cardmain"
+    items = {"つかう", "すてる", "もどる"},
     selected = 1
   }
 }
@@ -469,6 +479,8 @@ function love.update(dt)
   elseif menuState.currentMenu == "card" and FLAGS.menuM == true then
     --FLAGS.menuM = false
     updateCardMenu()
+  elseif menuState.currentMenu == "cardmain" and FLAGS.menuM == true then
+    updateCardMainMenu()
   elseif menuStateAfter.currentMenu == "mainAfter" and FLAGS.menuT == true then
     updateMainAfterMenu()
   elseif menuStateAfter.currentMenu == "propertyMenuAfter" and FLAGS.menuT == true then
@@ -561,6 +573,34 @@ function convert_index_coordinate(index)
     local x, y = col * 40, row * 40
     return {x, y}
 end
+
+
+function updateCardMainMenu()
+  local menu = menuState.cardMainMenu
+  if keyPressed["up"] then
+    if menu.selected == 1 then
+      menu.selected = #menu.items
+    else
+      menu.selected = menu.selected - 1
+    end
+  elseif keyPressed["down"] then
+    if menu.selected == #menu.items then
+      menu.selected = 1
+    else
+      menu.selected = menu.selected + 1
+    end
+  elseif keyPressed["return"] or keyPressed["space"] then
+    if menu.selected == 1 then
+      menuState.currentmenu = "card"
+    elseif menu.selected == 2 then
+      menuState.currentmenu = "drop"
+    end
+  elseif keyPressed["escape"] or keyPressed["q"] then
+    --前のメニューに戻る処理
+    menuState.currentMenu = "main"
+  end
+end
+ 
 
 function updatePropertyAfterMenu()
   local menu = menuStateAfter.propertyMenuAfter
@@ -978,6 +1018,7 @@ function usecard(card)
     FLAGS.pending_dice_roll = {power = card.power} -- 保留中のサイコロ情報
   end
 end
+
 
 
 
