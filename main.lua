@@ -886,6 +886,8 @@ function draw_debug_info()
 end
 
 
+--[[
+
 function update_current_cards() --各カード選択時に手動実行する
   --current_card_before_names = {} --カード名だけ入る
 
@@ -906,6 +908,32 @@ function update_current_cards() --各カード選択時に手動実行する
   end
 end
 end
+]]--
+
+function update_current_cards()
+  -- グローバル変数ではなくローカル変数で管理
+  local current_player = PLAYERS[FLAGS.currentP]
+  
+  CURRENT_CARD_BEFORE = {}
+  current_card_before_names = {}
+  CURRENT_CARD_AFTER = {}
+  current_card_after_names = {}
+
+  -- ipairsでインデックス順に処理
+  for i, card in ipairs(current_player.cards) do
+    print(string.format("カード%d: %s (%s)", i, card.name, card.attribute)) -- デバッグ用出力
+    
+    -- 属性チェックを厳密化（全角スペース除去）
+    local attribute = card.attribute:gsub("　", "")
+    if attribute == "交通系" then
+      table.insert(CURRENT_CARD_BEFORE, card)
+      table.insert(current_card_before_names, card.name)
+    else
+      table.insert(CURRENT_CARD_AFTER, card)
+      table.insert(current_card_after_names, card.name)
+    end
+  end
+end
 
 function update_current_properties() --プロパティをいじるときには呼び出す
   CURRENT_PROPERTY =  STATIONS_TABLE[PLAYERS[FLAGS.currentP].coordinate].properties
@@ -920,44 +948,29 @@ function update_current_properties_name()--プロパティの名前を破壊的�
 end
 
 
+
+--[[
 function update_menu_state()
 
   menuState.cardMenu.items = current_card_before_names
-  --[[menuState = { --menuState構造体 到着前メニュー
-    currentMenu = "main", --現在のメニュー判別用キー
-    mainMenu = {
-      items = {"サイコロ", "カード", "その他"},
-      selected = 1
-    },
-
-    cardMenu = { --カード使用時のメニュー
-      items = current_card_before,
-      selected = 1
-    }
-  }
-]]--
+  
 
 menuStateAfter.propertyMenuAfter.items = CURRENT_PROPERTY
 menuStateAfter.cardMenuAfter.items = current_card_after_names
 
---[[
-  menuStateAfter = { --到着後メインメニュー
-    currentMenu = "mainAfter",
-    mainMenuAfter = { --目的地でのメニュー
-      items = {"物件を買う", "カード", "終わる"},
-      selected = 1
-    },
 
-    propertyMenuAfter = { --物件選択メニュー
-      items = CURRENT_PROPERTY,
-      selected = 1
-    },
+end
+]]--
 
-    cardMenuAfter = { --目的地で使えるカードメニュー
-      items = current_card_after,
-      selected = 1
-    }
-  } ]]--
+function update_menu_state()
+  -- メニュー項目を直接更新
+  menuState.cardMenu.items = current_card_before_names
+  menuStateAfter.cardMenuAfter.items = current_card_after_names
+  menuStateAfter.propertyMenuAfter.items = CURRENT_PROPERTY
+  
+  -- メニュー選択位置をリセット
+  menuState.cardMenu.selected = 1
+  menuStateAfter.cardMenuAfter.selected = 1
 end
 
 function update_all()
