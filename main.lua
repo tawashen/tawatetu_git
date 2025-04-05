@@ -172,15 +172,7 @@ CURRENT_CARD_BEFORE = {} --移動前カードテーブル
 current_card_after_names = {} 
 CURRENT_CARD_AFTER = {} --移動後カードテーブル
 
---[[
-function update_current_cards() --各カード選択時に手動実行する
-  for _, card in pairs(test_cards) do
-    if card.attribute == "koutuu" then
-      table.insert(current_card_before, card.name)
-    else table.insert(current_card_after, card.name)
-  end
-end
---]]
+
 
 
 menuState = { --menuState構造体 到着前メニュー
@@ -285,7 +277,7 @@ function love.draw()
             --update_all()
               --update_current_properties()--グローバルを破壊的変更
   --update_current_properties_name()--グローバルを破壊的変更
-  update_current_cards()
+  --update_current_cards() これが無限の原因かも？
   --update_menu_state()
       drawMenu(menuState.cardMenu)
     end
@@ -501,7 +493,7 @@ function love.update(dt)
     FLAGS.pending_dice_roll = nil
   end
 
-  update_current_cards()
+  --update_current_cards()
 
 end
 
@@ -888,12 +880,13 @@ end
 
 function update_current_cards() --各カード選択時に手動実行する
   --current_card_before_names = {} --カード名だけ入る
-
+--[[
   CURRENT_CARD_BEFORE = {}
   current_card_before_names = {}
   CURRENT_CARD_AFTER = {}
   current_card_after_names = {}
-  --current_card_after_names = {}
+  current_card_after_names = {}
+  ]]--
 
   for _, card in pairs(PLAYERS[FLAGS.currentP].cards) do
     if card.attribute == "交通系" then
@@ -903,8 +896,8 @@ function update_current_cards() --各カード選択時に手動実行する
       table.insert(CURRENT_CARD_AFTER, card)
       table.insert(current_card_after_names, card.name)
 
+    end
   end
-end
 end
 
 function update_current_properties() --プロパティをいじるときには呼び出す
