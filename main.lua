@@ -104,13 +104,13 @@ C_marusa = {name = "マルサカード", attribute = "マルサ", price = 5000, 
     totalP = 2, currentP = 1, 
     menuM = true, --移動前メニュー表示フラグ 
     menuT = false, --移動後メニュー表示フラグ
+    menuC = false, --カード表示フラグ
     dice_go = false, dice_num = 1, move_on = false, month = 4,
     move_num = 0, walk_table = {}, 
     at_destination = false, --目的地到達フラグ
     destination_index = nil, --目的地インデックス
     message_disp_flag = false, --画面にメッセージを表示するフラグ
     arrival_flag = false,
-    CURRENT_PROPERTY = {},
     pending_dice_roll = nil
 
   }
@@ -155,7 +155,9 @@ STATIONS_TABLE = {[43] = St_Hoshida, [51] = St_Sizyounawate}
 
 
 --CURRENT_PROPERTY = {}
+CURRENT_PROPERTY = {}
 CURRENT_PROPERTY_NAMES = {}
+
 
 
 
@@ -165,9 +167,10 @@ CURRENT_PROPERTY_NAMES = {}
 --test_cards = {C_kyukou, C_tokkyu, C_marusa, C_marusa}
 
 -- menu display 
-current_card_before = {} --移動前カードDisplayテーブル
-current_card_after = {} --移動後カードDisplayテーブル
-
+current_card_before_names = {} 
+CURRENT_CARD_BEFORE = {} --移動前カードテーブル
+current_card_after_names = {} 
+CURRENT_CARD_AFTER = {} --移動後カードテーブル
 
 --[[
 function update_current_cards() --各カード選択時に手動実行する
@@ -188,7 +191,7 @@ menuState = { --menuState構造体 到着前メニュー
   },
 
   cardMenu = { --カード使用時のメニュー
-    items = current_card_before,
+    items = current_card_before_names,
     selected = 1
   }
 }
@@ -201,12 +204,12 @@ menuStateAfter = { --到着後メインメニュー
   },
 
   propertyMenuAfter = { --物件選択メニュー
-    items = FLAGS.CURRENT_PROPERTY, --CURRENT_PROPERTY_NAMES,
+    items = CURRENT_PROPERTY, --CURRENT_PROPERTY_NAMES,
     selected = 1
   },
 
   cardMenuAfter = { --目的地で使えるカードメニュー
-    items = current_card_after,
+    items = current_card_after_names,
     selected = 1
   }
 }
@@ -279,7 +282,11 @@ function love.draw()
       love.graphics.setColor(1, 1, 1)
       love.graphics.rectangle("line", 802, 320, 194, (v_height - 2), 10) --角を丸める
       love.graphics.setLineWidth(1)--枠線の太さ
-            update_all()
+            --update_all()
+              --update_current_properties()--グローバルを破壊的変更
+  --update_current_properties_name()--グローバルを破壊的変更
+  update_current_cards()
+  --update_menu_state()
       drawMenu(menuState.cardMenu)
     end
   end
@@ -402,9 +409,9 @@ function love.draw()
   end
   --display FLAGS for DEBUG
   --draw_debug_info()
-  if FLAGS.menuM and current_card_before ~= {} then
+  if FLAGS.menuM and current_card_before_names ~= {} then
     love.graphics.setColor(0,0,0)
-    for i, card in pairs(current_card_before) do
+    for i, card in pairs(current_card_before_names) do
      love.graphics.print(card, 200, 200 + 30 * i)
    end
  end
@@ -468,7 +475,7 @@ function love.update(dt)
   if menuState.currentMenu == "main" and FLAGS.menuM == true then
     updateMainMenu()
   elseif menuState.currentMenu == "card" and FLAGS.menuM == true then
-    FLAGS.menuM = false
+    --FLAGS.menuM = false
     updateCardMenu()
   elseif menuStateAfter.currentMenu == "mainAfter" and FLAGS.menuT == true then
     updateMainAfterMenu()
@@ -578,7 +585,7 @@ function updatePropertyAfterMenu()
       menu.selected = menu.selected + 1
     end
   elseif keyPressed["return"] or keyPressed["space"] then
-    buyProperty(FLAGS.CURRENT_PROPERTY[menu.selected])
+    buyProperty(CURRENT_PROPERTY[menu.selected])
     --updatePropertyAfterMenu() -- loop
   elseif keyPressed["escape"] or keyPressed["q"] then
     --前のメニューに戻る処理
@@ -658,7 +665,7 @@ function updateCardMenu()
     elseif keyPressed["down"] then
       menu.selected = menu.selected % #menu.items + 1
     elseif keyPressed["return"] or keyPressed["space"] then
-      usecard(current_card_before[menu.selected])
+      usecard(CURRENT_CARD_BEFORE[menu.selected]) --cardテーブルを入れないと
     elseif keyPressed["escape"] then
       menuState.currentmenu = "main"
     end
@@ -721,7 +728,7 @@ function drawMenu(menu)
             
             love.graphics.print(text, 110, 330 + i * 30)
         else
-            love.graphics.print(tostring(item), 810, 300 + i *30)
+            love.graphics.print(item, 810, 300 + i *30)
           end
         end
 
@@ -815,7 +822,11 @@ function end_movement()
     end
     --駅到着
     if isStation() then
-      update_all()
+      --update_all()
+      update_current_properties()
+      update_current_properties_name()
+      update_menu_state()
+
 
       FLAGS.menuT = true
     else 
@@ -876,24 +887,33 @@ end
 
 
 function update_current_cards() --各カード選択時に手動実行する
-  current_card_before = {}
-  current_card_after = {}
+  --current_card_before_names = {} --カード名だけ入る
+
+  CURRENT_CARD_BEFORE = {}
+  current_card_before_names = {}
+  CURRENT_CARD_AFTER = {}
+  current_card_after_names = {}
+  --current_card_after_names = {}
 
   for _, card in pairs(PLAYERS[FLAGS.currentP].cards) do
     if card.attribute == "交通系" then
-      table.insert(current_card_before, card.name)
-    else table.insert(current_card_after, card.name)
+      table.insert(CURRENT_CARD_BEFORE, card)
+      table.insert(current_card_before_names, card.name)
+    else 
+      table.insert(CURRENT_CARD_AFTER, card)
+      table.insert(current_card_after_names, card.name)
+
   end
 end
 end
 
 function update_current_properties() --プロパティをいじるときには呼び出す
-  FLAGS.CURRENT_PROPERTY =  STATIONS_TABLE[PLAYERS[FLAGS.currentP].coordinate].properties
+  CURRENT_PROPERTY =  STATIONS_TABLE[PLAYERS[FLAGS.currentP].coordinate].properties
 end
 
 function update_current_properties_name()--プロパティの名前を破壊的生成
   local new_proparties_name = {}
-  for _, property in pairs(FLAGS.CURRENT_PROPERTY) do
+  for _, property in pairs(CURRENT_PROPERTY) do
     table.insert(new_proparties_name, property.name)
   end
   CURRENT_PROPERTY_NAMES = new_proparties_name
@@ -901,7 +921,9 @@ end
 
 
 function update_menu_state()
-  menuState = { --menuState構造体 到着前メニュー
+
+  menuState.cardMenu.items = current_card_before_names
+  --[[menuState = { --menuState構造体 到着前メニュー
     currentMenu = "main", --現在のメニュー判別用キー
     mainMenu = {
       items = {"サイコロ", "カード", "その他"},
@@ -913,7 +935,12 @@ function update_menu_state()
       selected = 1
     }
   }
+]]--
 
+menuStateAfter.propertyMenuAfter.items = CURRENT_PROPERTY
+menuStateAfter.cardMenuAfter.items = current_card_after_names
+
+--[[
   menuStateAfter = { --到着後メインメニュー
     currentMenu = "mainAfter",
     mainMenuAfter = { --目的地でのメニュー
@@ -922,7 +949,7 @@ function update_menu_state()
     },
 
     propertyMenuAfter = { --物件選択メニュー
-      items = FLAGS.CURRENT_PROPERTY,
+      items = CURRENT_PROPERTY,
       selected = 1
     },
 
@@ -930,7 +957,7 @@ function update_menu_state()
       items = current_card_after,
       selected = 1
     }
-  }
+  } ]]--
 end
 
 function update_all()
