@@ -176,45 +176,50 @@ CURRENT_CARD_AFTER = {} --移動後カードテーブル
 
 
 menuState = { --menuState構造体 到着前メニュー
-  currentMenu = "main", --現在のメニュー判別用キー
-  mainMenu = { --"main"
+  currentMenu = "mainmenu", --現在のメニュー判別用キー
+  mainMenu = { --"mainmenu"
     items = {"サイコロ", "カード", "その他"},
     selected = 1
   },
 
-  cardMenu = { --カード使用時のメニュー "card"
+  cardMenu = { --カード使用時のメニュー "cardmenu"
     items = current_card_before_names,
     selected = 1
   },
 
-  cardDropMenu = { --カードを捨てる用メニュー "carddrop"
+  cardDropMenu = { --カードを捨てる用メニュー "carddropmenu"
     items = current_card_before_names,
     selected = 1
   },
 
-  cardMainMenu = { --"cardmain"
+  cardMainMenu = { --"cardmainmenu"
     items = {"つかう", "すてる", "もどる"},
     selected = 1
   }
-}
+  }
 
 menuStateAfter = { --到着後メインメニュー
-  currentMenu = "mainAfter",
-  mainMenuAfter = { --目的地でのメニュー
+  currentMenu = "mainmenuAfter",
+  mainMenuAfter = { --目的地でのメニュー "mainmenuafter"
     items = {"物件を買う", "カード", "終わる"},
     selected = 1
   },
 
-  propertyMenuAfter = { --物件選択メニュー
+  propertyMenuAfter = { --物件選択メニュー "propertymenuafter"
     items = CURRENT_PROPERTY, --CURRENT_PROPERTY_NAMES,
     selected = 1
   },
 
-  cardMenuAfter = { --目的地で使えるカードメニュー
+  cardMenuAfter = { --目的地で使えるカードメニュー "cardmenuafter"
     items = current_card_after_names,
     selected = 1
+  },
+
+  cardMainMenuAfter = { --"cardmainmenuafter"
+    items = {"つかう", "すてる", "もどる"},
+    selected = 1
   }
-}
+  }
 
 keyPressed = {}
 
@@ -266,7 +271,8 @@ function love.draw()
   
   --メニュー呼び出し用フラグを破壊的変更
    if FLAGS.menuM then --FLAGS.menuM acticve
-    if menuState.currentMenu == "main" then
+
+    if menuState.currentMenu == "mainmenu" then
     local v_height = #menuState.mainMenu.items * 30 + 20
       love.graphics.setColor(0, 0, 0) 
       love.graphics.rectangle("fill", 800, 320, 200, v_height, 10)
@@ -275,28 +281,34 @@ function love.draw()
       love.graphics.rectangle("line", 802, 320, 194, (v_height - 2), 10) --角を丸める
       love.graphics.setLineWidth(1)--枠線の太さ
       drawMenu(menuState.mainMenu)
-    elseif menuState.currentMenu == "card" then
 
-    local v_height = #menuState.cardMenu.items * 30 + 20
+   elseif menuState.currentMenu == "cardmainmenu" then --card用のメニュー
+    local v_height = #menuState.mainMenu.items * 30 + 20
       love.graphics.setColor(0, 0, 0) 
       love.graphics.rectangle("fill", 800, 320, 200, v_height, 10)
       love.graphics.setLineWidth(5)--枠線の太さ
       love.graphics.setColor(1, 1, 1)
       love.graphics.rectangle("line", 802, 320, 194, (v_height - 2), 10) --角を丸める
       love.graphics.setLineWidth(1)--枠線の太さ
-            --update_all()
-              --update_current_properties()--グローバルを破壊的変更
-  --update_current_properties_name()--グローバルを破壊的変更
-  --update_current_cards() これが無限の原因かも？
-  --update_menu_state()
+      drawMenu(menuState.cardMainMenu)
+
+    elseif menuState.currentMenu == "cardmenu" or menuState.currentMenu == "carddropmenu" then --カード一覧表示
+    local v_height = #menuState.cardMenu.items * 30 + 20
+      love.graphics.setColor(0, 0, 0) 
+      love.graphics.rectangle("fill", 600, 320, 200, v_height, 10)
+      love.graphics.setLineWidth(5)--枠線の太さ
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.rectangle("line", 602, 320, 194, (v_height - 2), 10) --角を丸める
+      love.graphics.setLineWidth(1)--枠線の太さ
       drawMenu(menuState.cardMenu)
+ 
     end
   end
 
   --到着後メニュー呼び出しフラグを破壊的変更
-    if FLAGS.menuT then
-    if menuStateAfter.currentMenu == "mainAfter" then
-      local v_height = #menuStateAfter.mainMenuAfter.items * 30 + 20
+    if FLAGS.menuT then --到着後メニュー表示フラグON
+    if menuStateAfter.currentMenu == "mainmenuafter" then --最初のメニュー
+      local v_height = #menuStateAfter.mainMenuAfter.items * 30 + 20 
         love.graphics.setColor(0, 0, 0) 
         love.graphics.rectangle("fill", 800, 320, 200, v_height, 10)
         love.graphics.setLineWidth(5)--枠線の太さ
@@ -304,7 +316,8 @@ function love.draw()
         love.graphics.rectangle("line", 802, 320, 194, (v_height - 2), 10) --角を丸める
         love.graphics.setLineWidth(1)--枠線の太さ
       drawMenu(menuStateAfter.mainMenuAfter)
-    elseif menuStateAfter.currentMenu == "propertyMenuAfter" then
+
+    elseif menuStateAfter.currentMenu == "propertymenuafter" then --到着後物件選択メニュー表示
       local v_height = #menuStateAfter.propertyMenuAfter.items * 40
       love.graphics.setColor(0, 0, 0) 
       love.graphics.rectangle("fill", 100, 340, 800, v_height, 10)
@@ -312,10 +325,27 @@ function love.draw()
       love.graphics.setColor(1, 1, 1)
       love.graphics.rectangle("line", 100, 340, 800, (v_height - 2), 10) --角を丸める
       love.graphics.setLineWidth(1)--枠線の太さ
-
       drawMenu(menuStateAfter.propertyMenuAfter)
-    elseif menuStateAfter.currentMenu == "cardMenuAfter" then
+
+    elseif menuStateAfter.currentMenu == "cardmenuafter" then --到着後カードメニュー表示
+    local v_height = #menuState.cardMenu.items * 30 + 20
+      love.graphics.setColor(0, 0, 0) 
+      love.graphics.rectangle("fill", 600, 320, 200, v_height, 10)
+      love.graphics.setLineWidth(5)--枠線の太さ
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.rectangle("line", 602, 320, 194, (v_height - 2), 10) --角を丸める
+      love.graphics.setLineWidth(1)--枠線の太さ
       drawMenu(menuStateAfter.cardMenuAfter)
+
+    elseif menuStateAfter.currentMenu == "cardmainmenuafter" then
+    local v_height = #menuState.cardMenu.items * 30 + 20
+      love.graphics.setColor(0, 0, 0) 
+      love.graphics.rectangle("fill", 600, 320, 200, v_height, 10)
+      love.graphics.setLineWidth(5)--枠線の太さ
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.rectangle("line", 602, 320, 194, (v_height - 2), 10) --角を丸める
+      love.graphics.setLineWidth(1)--枠線の太さ
+      drawMenu(menuState.cardMenuAfter)
     end
   end
 
@@ -419,7 +449,7 @@ function love.draw()
  end
 
 
-  end
+end
 
 
 
@@ -474,19 +504,22 @@ function love.keypressed(key)
 
 
 function love.update(dt)
-  if menuState.currentMenu == "main" and FLAGS.menuM == true then
+  if menuState.currentMenu == "mainmenu" and FLAGS.menuM == true then
     updateMainMenu()
-  elseif menuState.currentMenu == "card" and FLAGS.menuM == true then
-    --FLAGS.menuM = false
+  elseif menuState.currentMenu == "cardmenu" and FLAGS.menuM == true then
     updateCardMenu()
-  elseif menuState.currentMenu == "cardmain" and FLAGS.menuM == true then
+  elseif menuState.currentMenu == "cardmainmenu" and FLAGS.menuM == true then
     updateCardMainMenu()
-  elseif menuStateAfter.currentMenu == "mainAfter" and FLAGS.menuT == true then
-    updateMainAfterMenu()
-  elseif menuStateAfter.currentMenu == "propertyMenuAfter" and FLAGS.menuT == true then
-    updatePropertyAfterMenu()
-  elseif menuStateAfter.currentMenu == "cardMenuAfter" and FLAGS.menuT == true then
-    updateCardAfterMenu()
+  elseif menuState.currentMenu == "carddropmenu" and FLAGS.menuM == true then
+    updateCardDropMenu() --new
+  elseif menuStateAfter.currentMenu == "mainmenuafter" and FLAGS.menuT == true then
+    updateMainMenuAfter()
+  elseif menuStateAfter.currentMenu == "propertymenuafter" and FLAGS.menuT == true then
+    updatePropertyMenuAfter()
+  elseif menuStateAfter.currentMenu == "cardmenuafter" and FLAGS.menuT == true then
+    updateCardMenuAfter()
+  elseif menuStateAfter.currentMenu == "cardmainmenuafter" and FLAGS.menuT == true then
+    updateCardMainMenuAfter() --new
   end
 
 --移動用キー入力
@@ -515,6 +548,8 @@ end
 
 
 -- created original functions --
+
+
 
 --目的地到着処理
 function arrival_destination(player) --引数はPlayer構造体
@@ -575,6 +610,43 @@ function convert_index_coordinate(index)
 end
 
 
+--ステートマシン関数 ---------------------------------------------------------------------------------------------
+
+function updateMainMenu()
+  local menu = menuState.mainMenu
+  if keyPressed["up"] then
+    menu.selected = (menu.selected - 2) % #menu.items + 1
+  elseif keyPressed["down"] then
+    menu.selected = menu.selected % #menu.items + 1
+  elseif keyPressed["return"] or keyPressed["space"] then
+    if menu.selected == 1 then
+      --FLAGS.menuM = false --以前はmainMenuだったのでエラーが起きるかも？
+      FLAGS.dice_go = true
+      roll_dice(1)
+    elseif menu.selected == 2 then
+      update_current_cards()
+      menuState.currentMenu = "cardmenu"
+    elseif menu.selected == 3 then
+      print("etc")
+    end
+  end
+end
+
+function updateCardMenu()
+    local menu = menuState.cardMenu
+    if keyPressed["up"] then
+      menu.selected = (menu.selected - 2) % #menu.items + 1
+    elseif keyPressed["down"] then
+      menu.selected = menu.selected % #menu.items + 1
+    elseif keyPressed["return"] or keyPressed["space"] then
+      usecard(CURRENT_CARD_BEFORE[menu.selected]) --cardテーブルを入れないと
+    elseif keyPressed["escape"] then
+      menuState.currentmenu = "main"
+    end
+  end
+
+--function updateCardDropMenu() -- new
+
 function updateCardMainMenu()
   local menu = menuState.cardMainMenu
   if keyPressed["up"] then
@@ -591,7 +663,7 @@ function updateCardMainMenu()
     end
   elseif keyPressed["return"] or keyPressed["space"] then
     if menu.selected == 1 then
-      menuState.currentmenu = "card"
+      menuState.currentmenu = "cardmenu"
     elseif menu.selected == 2 then
       menuState.currentmenu = "drop"
     end
@@ -602,36 +674,9 @@ function updateCardMainMenu()
 end
  
 
-function updatePropertyAfterMenu()
-  local menu = menuStateAfter.propertyMenuAfter
-  if keyPressed["up"] then
-    if menu.selected == 1 then
-      menu.selected = #menu.items
-    else
-      menu.selected = menu.selected - 1
-    end
-  elseif keyPressed["down"] then
-    if menu.selected == #menu.items then
-      menu.selected = 1
-    else
-      menu.selected = menu.selected + 1
-    end
-  elseif keyPressed["return"] or keyPressed["space"] then
-    buyProperty(CURRENT_PROPERTY[menu.selected])
-    --updatePropertyAfterMenu() -- loop
-  elseif keyPressed["escape"] or keyPressed["q"] then
-    --前のメニューに戻る処理
-    menuStateAfter.currentMenu = "mainAfter"
-  end
-end
+--到着後のメニューステートマシン関数
 
---データをリセットするまとめ
---function reset_current_data()
-  --  FLAGS.
-
-
-
-function updateMainAfterMenu()
+function updateMainMenuAfter()
   local menu = menuStateAfter.mainMenuAfter--初期値としてmainmenuafterをセット
   if keyPressed["up"] then
     if menu.selected == 1 then
@@ -667,41 +712,37 @@ function updateMainAfterMenu()
   end
 end
 
-
-function updateMainMenu()
-  local menu = menuState.mainMenu
+function updatePropertyMenuAfter()
+  local menu = menuStateAfter.propertyMenuAfter
   if keyPressed["up"] then
-    menu.selected = (menu.selected - 2) % #menu.items + 1
-  elseif keyPressed["down"] then
-    menu.selected = menu.selected % #menu.items + 1
-  elseif keyPressed["return"] or keyPressed["space"] then
     if menu.selected == 1 then
-      --FLAGS.menuM = false --以前はmainMenuだったのでエラーが起きるかも？
-      FLAGS.dice_go = true
-      roll_dice(1)
-    elseif menu.selected == 2 then
-      update_current_cards()
-      menuState.currentMenu = "card"
-    elseif menu.selected == 3 then
-      print("etc")
+      menu.selected = #menu.items
+    else
+      menu.selected = menu.selected - 1
     end
+  elseif keyPressed["down"] then
+    if menu.selected == #menu.items then
+      menu.selected = 1
+    else
+      menu.selected = menu.selected + 1
+    end
+  elseif keyPressed["return"] or keyPressed["space"] then
+    buyProperty(CURRENT_PROPERTY[menu.selected])
+    --updatePropertyAfterMenu() -- loop
+  elseif keyPressed["escape"] or keyPressed["q"] then
+    --前のメニューに戻る処理
+    menuStateAfter.currentMenu = "mainAfter"
   end
 end
 
+--function updateCardMenuAfter() --new
 
 
-function updateCardMenu()
-    local menu = menuState.cardMenu
-    if keyPressed["up"] then
-      menu.selected = (menu.selected - 2) % #menu.items + 1
-    elseif keyPressed["down"] then
-      menu.selected = menu.selected % #menu.items + 1
-    elseif keyPressed["return"] or keyPressed["space"] then
-      usecard(CURRENT_CARD_BEFORE[menu.selected]) --cardテーブルを入れないと
-    elseif keyPressed["escape"] then
-      menuState.currentmenu = "main"
-    end
-  end
+
+--function updateCardMainMenuAfter() --new
+
+
+
 
 
 --[[
@@ -759,7 +800,9 @@ function drawMenu(menu)
             )
             
             love.graphics.print(text, 110, 330 + i * 30)
-        else
+        elseif menu == menuState.cardMenu then
+            love.graphics.print(item, 610, 300 + i *30)
+          else
             love.graphics.print(item, 810, 300 + i *30)
           end
         end
@@ -809,18 +852,6 @@ function sum(lst)
   end
   return acc
 end
-
---[[
-function walk_count(t_coordinate) --破壊的副作用関数
-  if t_coordinate == FLAGS.walk_table[1] then
-    FLAGS.move_num += 1
-    remove.table(FLAGS.walk_table[1])
-  else 
-    FLAGS.move_num -= 1
-    insert.table(FLAGS.walk_table[1], t_coordinate)
-  end
-end
-]]--
 
 
 
@@ -955,42 +986,11 @@ end
 
 function update_menu_state()
 
-  menuState.cardMenu.items = current_card_before_names
-  --[[menuState = { --menuState構造体 到着前メニュー
-    currentMenu = "main", --現在のメニュー判別用キー
-    mainMenu = {
-      items = {"サイコロ", "カード", "その他"},
-      selected = 1
-    },
-
-    cardMenu = { --カード使用時のメニュー
-      items = current_card_before,
-      selected = 1
-    }
-  }
-]]--
+menuState.cardMenu.items = current_card_before_names
 
 menuStateAfter.propertyMenuAfter.items = CURRENT_PROPERTY
 menuStateAfter.cardMenuAfter.items = current_card_after_names
 
---[[
-  menuStateAfter = { --到着後メインメニュー
-    currentMenu = "mainAfter",
-    mainMenuAfter = { --目的地でのメニュー
-      items = {"物件を買う", "カード", "終わる"},
-      selected = 1
-    },
-
-    propertyMenuAfter = { --物件選択メニュー
-      items = CURRENT_PROPERTY,
-      selected = 1
-    },
-
-    cardMenuAfter = { --目的地で使えるカードメニュー
-      items = current_card_after,
-      selected = 1
-    }
-  } ]]--
 end
 
 function update_all()
@@ -1027,12 +1027,3 @@ end
 
 --function count_distance(player) --引数プレイヤーテーブル
 
-
---git start
-
-
---git
-
-
-
---tawatet
