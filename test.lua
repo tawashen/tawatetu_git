@@ -16,6 +16,45 @@ map = {
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
   }
 
+-- メモファイルのパス
+local MEMO_FILE = "path_memo.lua"
+
+-- メモデータの読み込み
+local function load_memo()
+    local memo = {}
+    if io.open(MEMO_FILE, "r") then
+        memo = dofile(MEMO_FILE) -- ファイルをLuaテーブルとして実行
+    end
+    return memo or {}
+end
+
+-- メモデータの保存
+local function save_memo(memo)
+    local file = io.open(MEMO_FILE, "w")
+    file:write("return {\n")
+    for k, v in pairs(memo) do
+        file:write(string.format("  [%q] = %d,\n", k, v))
+    end
+    file:write("}\n")
+    file:close()
+end
+
+-- 使用例
+
+
+function find_min(t)
+    local result = 1000000
+    for _, num in pairs(t) do
+        if result > num then
+        result = num
+        end
+    end
+        return result
+end
+
+
+
+
 DIRECT = {-20, 1, 20, -1}
  -- 1 or 8 raoad
 function isStation(index) --tree作成
@@ -49,11 +88,33 @@ function containsT(t, num)
     return false
 end
 
- result = {}
+
+
+ 
+local final = nil
 
 function nextStation(index, target, from_table, count)
     --local result = {}
 
+local result = {}
+
+local memo = load_memo()
+
+-- キー生成（例：index_target）
+local key = string.format("%d_%d", index, target)
+
+-- 検索時にチェック
+if memo[key] then
+    final = memo[key]
+    --print("メモから取得:", memo[key])
+    -- 通常処理
+    --[[
+    local count = 5 -- 計算結果
+    memo[key] = count
+    save_memo(memo)
+    ]]--
+
+else
     local function saiki(indexS, from_tableS, countS)
         local old_target = isStation(indexS)
         print("from")
@@ -75,6 +136,7 @@ function nextStation(index, target, from_table, count)
     for _, nextS in ipairs(new_target) do
         if nextS == target then
             new_count = countS + 1
+            print(new_count)
             table.insert(result, new_count)
             --break
         else 
@@ -85,15 +147,30 @@ function nextStation(index, target, from_table, count)
             saiki(nextS, new_from_table, new_count)
         end
     end
-end
---end
+
+  end
     saiki(index, from_table, count)
+
+        memo[key] = find_min(result)
+      tableToString(result)
+    save_memo(memo)
+
+end
+ 
+  
 end
 
+
+
+
 function main ()
+
+
+
+
 nextStation(43, 55, {}, 0)
-print("result")
-print(tableToString(result))
+print(final)
+--print(find_min(result))
 end
 
 main()
