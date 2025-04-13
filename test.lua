@@ -16,6 +16,9 @@ map = {
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
   }
 
+
+--メモライズ関係---
+
 -- メモファイルのパス
 local MEMO_FILE = "path_memo.lua"
 
@@ -54,7 +57,7 @@ end
 
 DIRECT = {-20, 1, 20, -1}
  -- 1 or 8 raoad
-function isStation(index) --tree作成
+function nextTree(index) --tree作成
     local new_index = {}
     for _, direc in ipairs(DIRECT) do
     if map[index + direc] == 1 or map[index + direc] == 8 then
@@ -102,7 +105,7 @@ if memo[key] then
     final = memo[key]
 else
     local function saiki(indexS, from_tableS, countS)
-        local old_target = isStation(indexS)
+        local old_target = nextTree(indexS)
         local new_target = {}
     for _, targ in pairs(old_target) do --New_targetに履歴にあるコマ以外を追加する
         if not containsT(from_tableS, targ) then
