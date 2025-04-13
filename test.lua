@@ -52,9 +52,6 @@ function find_min(t)
         return result
 end
 
-
-
-
 DIRECT = {-20, 1, 20, -1}
  -- 1 or 8 raoad
 function isStation(index) --tree作成
@@ -91,36 +88,21 @@ end
 
 
  
-local final = nil
 
-function nextStation(index, target, from_table, count)
-    --local result = {}
+
+function nextStation(index, target, from_table, count) --> number（最短距離）
 
 local result = {}
-
+local final = nil
 local memo = load_memo()
 
--- キー生成（例：index_target）
 local key = string.format("%d_%d", index, target)
 
--- 検索時にチェック
 if memo[key] then
     final = memo[key]
-    --print("メモから取得:", memo[key])
-    -- 通常処理
-    --[[
-    local count = 5 -- 計算結果
-    memo[key] = count
-    save_memo(memo)
-    ]]--
-
 else
     local function saiki(indexS, from_tableS, countS)
         local old_target = isStation(indexS)
-        print("from")
-        print(tableToString(from_tableS))
-        print("old_target")
-        print(tableToString(old_target))
         local new_target = {}
     for _, targ in pairs(old_target) do --New_targetに履歴にあるコマ以外を追加する
         if not containsT(from_tableS, targ) then
@@ -128,17 +110,11 @@ else
             table.insert(new_target, targ)
         end
     end
-               print("new_target")
-            print(tableToString(new_target))
-    --if new_target == {} then 
-      --  return true
-    --else
     for _, nextS in ipairs(new_target) do
         if nextS == target then
             new_count = countS + 1
             print(new_count)
             table.insert(result, new_count)
-            --break
         else 
             print(nextS)
             new_from_table = from_tableS
@@ -147,17 +123,13 @@ else
             saiki(nextS, new_from_table, new_count)
         end
     end
-
   end
     saiki(index, from_table, count)
-
-        memo[key] = find_min(result)
-      tableToString(result)
+    final = find_min(result)
+    memo[key] = final
     save_memo(memo)
-
 end
- 
-  
+    return final --数値のみを返す
 end
 
 
