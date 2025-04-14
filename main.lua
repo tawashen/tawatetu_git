@@ -1129,8 +1129,23 @@ end
 
 
 
+--一定の時間をおいて実行する関数
+function sleep(n)
+  local t = os.clock()
+  while os.clock() - t <= n do end
+end
+
+--季節の挨拶を書いてください
+
 
 --function arrival(player) --引数プレイヤーテーブル
 
 --function count_distance(player) --引数プレイヤーテーブル
 
+function arrival_destination(player) --引数プレイヤーテーブル
+  --print("到着")
+  FLAGS.dice_go = false
+  FLAGS.menuM = false
+  FLAGS.move_on = false
+  FLAGS.menuT = true
+  FLAGS.walk_table = {}
