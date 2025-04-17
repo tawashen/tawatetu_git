@@ -448,7 +448,10 @@ function love.draw()
       elseif MESSAGE[2] == "already_else" then --他人の物件
         love.graphics.print(
           string.format("%sさん、ソレ他人の物件です！", PLAYERS[FLAGS.currentP].name), 210, 430)
-        end
+      elseif MESSAGE[2] == "use_card_mess" then --交通系カード使用
+        love.graphics.print(
+          string.format("%sカード！　サイコロが%01d個になった", MESSAGE[1], MESSAGE[3]), 210, 430)
+      end
     else
       FLAGS.message_disp_flag = false
       CURRENT_TIME_MESSAGE = nil
@@ -476,12 +479,13 @@ function love.draw()
   end
   --display FLAGS for DEBUG
   --draw_debug_info()
+  --[[
   if FLAGS.menuM and current_card_before_names ~= {} then
     love.graphics.setColor(0,0,0)
     for i, card in pairs(current_card_before_names) do
      love.graphics.print(card, 200, 200 + 30 * i)
    end
- end
+  end ]]--
 
 
 end
@@ -568,7 +572,8 @@ function love.update(dt)
 
   -- メッセージ表示終了後の処理
   if not FLAGS.message_disp_flag and FLAGS.pending_dice_roll then
-    FLAGS.move_on = true
+    FLAGS.menuM = false
+    FLAGS.dice_go = true
     roll_dice(FLAGS.pending_dice_roll.power)
     FLAGS.pending_dice_roll = nil
   end
@@ -882,7 +887,7 @@ function drawMenu(menu)
 
  
         
-        if menu == menuStateAfter.propertyMenuAfter then
+        if menu == menuStateAfter.propertyMenuAfter then --移動語物件メニュー表示
             -- UTF-8対応の文字列切り取り
         local smart_price = nil
         local string_price = tostring(item.price)
@@ -909,12 +914,12 @@ function drawMenu(menu)
             )
             
             love.graphics.print(text, 110, 330 + i * 30)
-        elseif menu == menuState.cardMenu then
+        elseif menu == menuState.cardMenu then --移動前カード一覧表示
             love.graphics.print(item, 610, 300 + i *30)
-          else
+        else
             love.graphics.print(item, 810, 300 + i *30)
-          end
         end
+    end
 
 end
 
@@ -1121,7 +1126,7 @@ function usecard(card)
 
   if card.attribute == "交通系" then
     FLAGS.message_disp_flag = true
-    MESSAGE = {card.name, card.attribute, card.power, 5}
+    MESSAGE = {card.name, "use_card_mess", card.power, 5}
     FLAGS.pending_dice_roll = {power = card.power} -- 保留中のサイコロ情報
   end
 end
@@ -1142,6 +1147,8 @@ end
 
 --function count_distance(player) --引数プレイヤーテーブル
 
+
+--[[
 function arrival_destination(player) --引数プレイヤーテーブル
   --print("到着")
   FLAGS.dice_go = false
@@ -1149,3 +1156,5 @@ function arrival_destination(player) --引数プレイヤーテーブル
   FLAGS.move_on = false
   FLAGS.menuT = true
   FLAGS.walk_table = {}
+
+  ]]--
