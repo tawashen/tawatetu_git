@@ -112,45 +112,7 @@ function love.load()
   quad_tables = {quad0, quad1, quad2, quad3, quad4, quad5, quad6, quad7, quad8}
 
 
---card data
-C_kyukou = {name = "急行カード", attribute = "交通系", price = 1000, power = 2}
-C_tokkyu = {name = "特急カード", attribute = "交通系", price = 3000, power = 3}
-C_marusa = {name = "マルサカード", attribute = "マルサ", price = 5000, power = nil}
-
-  player1 = {name = "player1", money = 0, coordinate = 43, cards = {C_kyukou, C_tokkyu, C_marusa}, image = Pred_image, funds = 10000, id = 1}
-  player2 = {name = "player2", money = 0, coordinate = 43, cards = {}, image = Pblue_image, funds = 200000, id = 2}
-  PLAYERS = {player1, player2}
-  
-
-  MESSAGE = {} --画面にメッセージを表示する内容 {object, "kind", 秒数}
-  TOTAL_TIME = 0 --カウント用累積カウンタ
-  CURRENT_TIME_MESSAGE = nil --メッセージ用カウンタ
-
-
-  FLAGS = {
-    totalP = 2, currentP = 1, 
-    menuM = true, --移動前メニュー表示フラグ 
-    menuT = false, --移動後メニュー表示フラグ
-    menuC = false, --カード表示フラグ
-    dice_go = false, dice_num = 1, move_on = false, month = 4,
-    move_num = 0, walk_table = {}, 
-    at_destination = false, --目的地到達フラグ
-    destination_index = 51, --目的地インデックス
-    message_disp_flag = false, --画面にメッセージを表示するフラグ
-    arrival_flag = false,
-    pending_dice_roll = nil
-
-  }
---totalP = player numbers, currentP = current player's numeber, menuM = main menu, menuC = card manu,
-
- draw_map()
-
---menu repeat issue resolve no change?
- love.keyboard.setKeyRepeat(false)
-
-
 --station data
-
 
 P_hoshida_shrine = {name = "星田神社　　　　　　", attribute ="宗教法人　", price = 10000, yield = 1, owner = nil}
 P_seven_eleven_hosida = {name = "７ー１１星田店　　　", attribute = "小売　　　", price = 3000, yield = 15, owner = nil}
@@ -174,6 +136,44 @@ St_Sizyounawate = {name = "四条畷駅",
     }
 
 STATIONS_TABLE = {[43] = St_Hoshida, [51] = St_Sizyounawate}
+
+--card data
+C_kyukou = {name = "急行カード", attribute = "交通系", price = 1000, power = 2}
+C_tokkyu = {name = "特急カード", attribute = "交通系", price = 3000, power = 3}
+C_marusa = {name = "マルサカード", attribute = "マルサ", price = 5000, power = nil}
+
+  player1 = {name = "player1", money = 0, coordinate = 43, cards = {C_kyukou, C_tokkyu, C_marusa}, image = Pred_image, funds = 10000, id = 1}
+  player2 = {name = "player2", money = 0, coordinate = 43, cards = {}, image = Pblue_image, funds = 200000, id = 2}
+  PLAYERS = {player1, player2}
+  
+
+  MESSAGE = {} --画面にメッセージを表示する内容 {object, "kind", 秒数}
+  TOTAL_TIME = 0 --カウント用累積カウンタ
+  CURRENT_TIME_MESSAGE = nil --メッセージ用カウンタ
+
+
+  FLAGS = {
+    totalP = 2, currentP = 1, 
+    menuM = true, --移動前メニュー表示フラグ 
+    menuT = false, --移動後メニュー表示フラグ
+    menuC = false, --カード表示フラグ
+    dice_go = false, dice_num = 1, move_on = false, month = 4,
+    move_num = 0, walk_table = {}, 
+    destination_index = 51, --目的地インデックス
+    message_disp_flag = false, --画面にメッセージを表示するフラグ
+    arrival_flag = false, --目的地到達フラグ
+    pending_dice_roll = nil
+
+  }
+--totalP = player numbers, currentP = current player's numeber, menuM = main menu, menuC = card manu,
+
+ draw_map()
+
+--menu repeat issue resolve no change?
+ love.keyboard.setKeyRepeat(false)
+
+
+
 
 --property
 
@@ -465,7 +465,7 @@ function love.draw()
     if CURRENT_TIME_MESSAGE == nil then
       CURRENT_TIME_MESSAGE = TOTAL_TIME
     end
-    if (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 3 then
+    if (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 5 then
       love.graphics.setColor(0, 0, 0) 
       love.graphics.rectangle("fill", 400, 400, 200, 100, 10)
       love.graphics.setLineWidth(5)--枠線の太さ
@@ -473,10 +473,39 @@ function love.draw()
       love.graphics.rectangle("line", 400, 400, 200, 100, 10) --角を丸める
       love.graphics.setLineWidth(1)--枠線の太さ
       love.graphics.print(
-        string.format("%sが%s駅に一番乗りです！", PLAYERS[FLAGS.currentP].name, 
-        STATIONS_TABLE[PLAYER[FLAGS.currentP].coordinate].name), 400, 400)
+        string.format("%sさんが%s駅に一番乗りです！", MESSAGE[1], STATIONS_TABLE[FLAGS.destination_index].name), 
+        400, 400)
+      --sleep(3)
+    elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 10 then
+            love.graphics.setColor(0, 0, 0) 
+      love.graphics.rectangle("fill", 400, 400, 200, 100, 10)
+      love.graphics.setLineWidth(5)--枠線の太さ
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.rectangle("line", 400, 400, 200, 100, 10) --角を丸める
+      love.graphics.setLineWidth(1)--枠線の太さ
+      love.graphics.print(
+        string.format("%sさんには賞金として%d円が進呈されます！", MESSAGE[1], MESSAGE[4]),
+        400, 400)
+      --sleep(3)
+    elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 15 then
+            love.graphics.setColor(0, 0, 0) 
+      love.graphics.rectangle("fill", 400, 400, 200, 100, 10)
+      love.graphics.setLineWidth(5)--枠線の太さ
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.rectangle("line", 400, 400, 200, 100, 10) --角を丸める
+      love.graphics.setLineWidth(1)--枠線の太さ
+      love.graphics.print(
+        string.format("次の目的地は%s駅です！", MESSAGE[5].name),
+        400, 400)
+    else
+      FLAGS.arrival_flag = false
+      CURRENT_TIME_MESSAGE = nil
+      MESSAGE = {}
+      FLAGS.menuT = true
     end
   end
+
+
   --display FLAGS for DEBUG
   --draw_debug_info()
   --[[
@@ -667,6 +696,12 @@ end
 
 --目的地到着処理
 function arrival_destination(player) --引数はPlayer構造体
+  FLAGS.dice_go = false
+  FLAGS.menuM = false
+  FLAGS.move_on = false
+  FLAGS.menuT = true
+  FLAGS.walk_table = {}
+  --FLAGS.arrival_flag = true
 
   --playerに賞金
   local prize = ((math.floor(FLAGS.month / 12) * 0.1) + 1) * 100000
@@ -675,19 +710,19 @@ function arrival_destination(player) --引数はPlayer構造体
  --次の目的地を決める
   local removed_stations_table = {} --現在地以外の駅
   for i, station in pairs(STATIONS_TABLE) do
-    if station.index ~= player.coordinate then
+    if station.index ~= FLAGS.destination_index then
       table.insert(removed_stations_table, station)
     end
   end
-  local random_count = math.random(1, #removed_stations_table)
-  local local_target = STATIONS_TABLE[random_count]
 
-  --FLAGS.destination_index = local_target.index
+  local random_count = math.random(1, #removed_stations_table)
+  local new_target = removed_stations_table[random_count]
+  --FLAGS.destination_index = new_target.index --目的地変更
 
   --到着の画面表示
   FLAGS.arrival_flag = true
   MESSAGE = {player.name, "arrival", 5, prize,
-              STATIONS_TABLE[local_target.index]} --FLAGS.destination_index}
+              new_taget} --FLAGS.destination_index}
 end
 
 
@@ -998,7 +1033,7 @@ function end_movement()
       arrival_destination(PLAYERS[FLAGS.currentP]) --Playerの参照を渡す
     end
     --駅到着
-    if isStation() then
+    if isStation() and FLAGS.arrival_flag == false then
       --update_all()
       update_current_properties()
       update_current_properties_name()
@@ -1148,13 +1183,3 @@ end
 --function count_distance(player) --引数プレイヤーテーブル
 
 
---[[
-function arrival_destination(player) --引数プレイヤーテーブル
-  --print("到着")
-  FLAGS.dice_go = false
-  FLAGS.menuM = false
-  FLAGS.move_on = false
-  FLAGS.menuT = true
-  FLAGS.walk_table = {}
-
-  ]]--
