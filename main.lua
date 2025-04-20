@@ -467,40 +467,41 @@ function love.draw()
     end
     if (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 5 then
       love.graphics.setColor(0, 0, 0) 
-      love.graphics.rectangle("fill", 400, 400, 200, 100, 10)
+      love.graphics.rectangle("fill", 100, 400, 650, 50, 10)
       love.graphics.setLineWidth(5)--枠線の太さ
       love.graphics.setColor(1, 1, 1)
-      love.graphics.rectangle("line", 400, 400, 200, 100, 10) --角を丸める
+      love.graphics.rectangle("line", 100, 400, 650, 50, 10) --角を丸める
       love.graphics.setLineWidth(1)--枠線の太さ
       love.graphics.print(
-        string.format("%sさんが%s駅に一番乗りです！", MESSAGE[1], STATIONS_TABLE[FLAGS.destination_index].name), 
-        400, 400)
+        string.format("%sさんが%sに一番乗りです！", MESSAGE[1], MESSAGE[5].name), 
+        110, 410)
       --sleep(3)
-    elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 10 then
+    elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 8 then
             love.graphics.setColor(0, 0, 0) 
-      love.graphics.rectangle("fill", 400, 400, 200, 100, 10)
+      love.graphics.rectangle("fill", 100, 400, 650, 50, 10)
       love.graphics.setLineWidth(5)--枠線の太さ
       love.graphics.setColor(1, 1, 1)
-      love.graphics.rectangle("line", 400, 400, 200, 100, 10) --角を丸める
+      love.graphics.rectangle("line", 100, 400, 650, 50, 10) --角を丸める
       love.graphics.setLineWidth(1)--枠線の太さ
       love.graphics.print(
         string.format("%sさんには賞金として%d円が進呈されます！", MESSAGE[1], MESSAGE[4]),
-        400, 400)
+        110, 410)
       --sleep(3)
-    elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 15 then
+    elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 12 then
             love.graphics.setColor(0, 0, 0) 
-      love.graphics.rectangle("fill", 400, 400, 200, 100, 10)
+      love.graphics.rectangle("fill", 100, 400, 650, 50, 10)
       love.graphics.setLineWidth(5)--枠線の太さ
       love.graphics.setColor(1, 1, 1)
-      love.graphics.rectangle("line", 400, 400, 200, 100, 10) --角を丸める
+      love.graphics.rectangle("line", 100, 400, 650, 50, 10) --角を丸める
       love.graphics.setLineWidth(1)--枠線の太さ
       love.graphics.print(
-        string.format("次の目的地は%s駅です！", MESSAGE[5].name),
-        400, 400)
+        string.format("次の目的地は%sです！", MESSAGE[6].name),
+        110, 410)
     else
       FLAGS.arrival_flag = false
       CURRENT_TIME_MESSAGE = nil
       MESSAGE = {}
+      update_all()
       FLAGS.menuT = true
     end
   end
@@ -709,20 +710,23 @@ function arrival_destination(player) --引数はPlayer構造体
 
  --次の目的地を決める
   local removed_stations_table = {} --現在地以外の駅
+  local old_target = nil -- 現在地
   for i, station in pairs(STATIONS_TABLE) do
     if station.index ~= FLAGS.destination_index then
       table.insert(removed_stations_table, station)
+    else old_target = station
     end
   end
 
   local random_count = math.random(1, #removed_stations_table)
+
   local new_target = removed_stations_table[random_count]
-  --FLAGS.destination_index = new_target.index --目的地変更
+  FLAGS.destination_index = new_target.index --目的地変更
 
   --到着の画面表示
   FLAGS.arrival_flag = true
   MESSAGE = {player.name, "arrival", 5, prize,
-              new_taget} --FLAGS.destination_index}
+             old_target, new_target} --FLAGS.destination_index}
 end
 
 
