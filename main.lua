@@ -478,7 +478,7 @@ function love.draw()
       --sleep(3)
     elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 8 then
       love.graphics.print(
-        string.format("%sさんには賞金として%d万円が進呈されます！", MESSAGE[1], MESSAGE[4]),
+        string.format("%sさんには賞金として%s円が進呈されます！", MESSAGE[1], money_display(MESSAGE[4])),
         110, 410)
       --sleep(3)
     elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 12 then
@@ -498,14 +498,15 @@ function love.draw()
 -- for funds
   if FLAGS.move_on == false and FLAGS.arrival_flag == false then
       love.graphics.setColor(0, 0, 0) 
-      love.graphics.rectangle("fill", 800, 120, 200, 60, 10)
+      love.graphics.rectangle("fill", 800, 120, 200, 90, 10)
       love.graphics.setLineWidth(5)--枠線の太さ
       love.graphics.setColor(1, 1, 1)
-      love.graphics.rectangle("line", 800, 120, 196, 54, 10) --角を丸める
+      love.graphics.rectangle("line", 800, 120, 196, 88, 10) --角を丸める
       love.graphics.setLineWidth(1)--枠線の太さ
 
+      local smart_price = money_display(PLAYERS[FLAGS.currentP].funds)
     love.graphics.print(
-      string.format("資金%d万円", PLAYERS[FLAGS.currentP].funds),
+      string.format("資金\n%s円", smart_price),
       810, 134)
   end
 
@@ -579,8 +580,8 @@ function love.update(dt)
     updateMainMenu()
   elseif menuState.currentMenu == "cardmenu" and FLAGS.menuM == true then
     updateCardMenu()
-  elseif menuState.currentMenu == "cardmainmenu" and FLAGS.menuM == true then
-    updateCardMainMenu()
+  --elseif menuState.currentMenu == "cardmainmenu" and FLAGS.menuM == true then
+    --updateCardMainMenu()
   elseif menuState.currentMenu == "carddropmenu" and FLAGS.menuM == true then
     updateCardDropMenu() --new
   elseif menuStateAfter.currentMenu == "mainmenuafter" and FLAGS.menuT == true then
@@ -791,7 +792,7 @@ function updateCardMenu()
     elseif keyPressed["down"] then
       menu.selected = menu.selected % #menu.items + 1
     elseif keyPressed["return"] or keyPressed["space"] then
-      usecard(CURRENT_CARD_BEFORE[menu.selected]) --cardテーブルを入れないと
+      usecard(CURRENT_CARD_BEFORE[menu.selected])
     elseif keyPressed["escape"] then
       menuState.currentmenu = "main"
     end
@@ -799,6 +800,7 @@ function updateCardMenu()
 
 --function updateCardDropMenu() -- new
 
+--[[
 function updateCardMainMenu()
   local menu = menuState.cardMainMenu
   if keyPressed["up"] then
@@ -824,6 +826,7 @@ function updateCardMainMenu()
     menuState.currentMenu = "main"
   end
 end
+]]--
  
 
 --到着後のメニューステートマシン関数
@@ -887,11 +890,41 @@ function updatePropertyMenuAfter()
   end
 end
 
---function updateCardMenuAfter() --new
+
+function updateCardMenuAfter() --new
+    local menu = menuState.cardMenuAfter
+    if keyPressed["up"] then
+      menu.selected = (menu.selected - 2) % #menu.items + 1
+    elseif keyPressed["down"] then
+      menu.selected = menu.selected % #menu.items + 1
+    elseif keyPressed["return"] or keyPressed["space"] then
+      usecard(CURRENT_CARD_BEFORE[menu.selected])
+    elseif keyPressed["escape"] then
+      menuState.currentmenu = "main"
+    end
+  end
 
 
 
 --function updateCardMainMenuAfter() --new
+
+
+function money_display(price) --> string
+  local smart_price = nil
+  local string_price = tostring(price)
+        if string.len(string_price) > 4 then --1億以上
+          if getCharFromRight(string_price, 4) == "0" then --億ピッタリ
+            smart_price = string.sub(string_price, 1, -5) .. "億"
+          else
+            smart_price = string.sub(string_price, 1, -5) .. "億" .. string.sub(string_price, -4) .. "万"
+          end
+        else
+          smart_price = string.sub(string_price, -4) .. "万"
+        end
+        return smart_price
+end
+
+
 
 
 function drawMenu(menu)
@@ -901,6 +934,7 @@ function drawMenu(menu)
 
         if menu == menuStateAfter.propertyMenuAfter then --移動語物件メニュー表示
             -- UTF-8対応の文字列切り取り
+            --[[
         local smart_price = nil
         local string_price = tostring(item.price)
         if string.len(string_price) > 4 then --1億以上
@@ -912,6 +946,8 @@ function drawMenu(menu)
         else
           smart_price = string.sub(string_price, -4) .. "万"
         end
+        ]]--
+            local smart_price = money_display(item.price)
             local function utf8sub(str, start, len)
                 return str:sub(1, len*3) -- マルチバイト文字を考慮した簡易対応
             end
