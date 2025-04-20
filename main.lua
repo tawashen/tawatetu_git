@@ -142,8 +142,8 @@ C_kyukou = {name = "急行カード", attribute = "交通系", price = 1000, pow
 C_tokkyu = {name = "特急カード", attribute = "交通系", price = 3000, power = 3}
 C_marusa = {name = "マルサカード", attribute = "マルサ", price = 5000, power = nil}
 
-  player1 = {name = "player1", money = 0, coordinate = 43, cards = {C_kyukou, C_tokkyu, C_marusa}, image = Pred_image, funds = 10000, id = 1}
-  player2 = {name = "player2", money = 0, coordinate = 43, cards = {}, image = Pblue_image, funds = 200000, id = 2}
+  player1 = {name = "player1", money = 0, coordinate = 43, cards = {C_kyukou, C_tokkyu, C_marusa}, image = Pred_image, funds = 5000, id = 1}
+  player2 = {name = "player2", money = 0, coordinate = 43, cards = {}, image = Pblue_image, funds = 2000, id = 2}
   PLAYERS = {player1, player2}
   
 
@@ -465,35 +465,23 @@ function love.draw()
     if CURRENT_TIME_MESSAGE == nil then
       CURRENT_TIME_MESSAGE = TOTAL_TIME
     end
-    if (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 5 then
       love.graphics.setColor(0, 0, 0) 
       love.graphics.rectangle("fill", 100, 400, 650, 50, 10)
       love.graphics.setLineWidth(5)--枠線の太さ
       love.graphics.setColor(1, 1, 1)
       love.graphics.rectangle("line", 100, 400, 650, 50, 10) --角を丸める
       love.graphics.setLineWidth(1)--枠線の太さ
-      love.graphics.print(
+    if (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 5 then
+         love.graphics.print(
         string.format("%sさんが%sに一番乗りです！", MESSAGE[1], MESSAGE[5].name), 
         110, 410)
       --sleep(3)
     elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 8 then
-            love.graphics.setColor(0, 0, 0) 
-      love.graphics.rectangle("fill", 100, 400, 650, 50, 10)
-      love.graphics.setLineWidth(5)--枠線の太さ
-      love.graphics.setColor(1, 1, 1)
-      love.graphics.rectangle("line", 100, 400, 650, 50, 10) --角を丸める
-      love.graphics.setLineWidth(1)--枠線の太さ
       love.graphics.print(
-        string.format("%sさんには賞金として%d円が進呈されます！", MESSAGE[1], MESSAGE[4]),
+        string.format("%sさんには賞金として%d万円が進呈されます！", MESSAGE[1], MESSAGE[4]),
         110, 410)
       --sleep(3)
     elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 12 then
-            love.graphics.setColor(0, 0, 0) 
-      love.graphics.rectangle("fill", 100, 400, 650, 50, 10)
-      love.graphics.setLineWidth(5)--枠線の太さ
-      love.graphics.setColor(1, 1, 1)
-      love.graphics.rectangle("line", 100, 400, 650, 50, 10) --角を丸める
-      love.graphics.setLineWidth(1)--枠線の太さ
       love.graphics.print(
         string.format("次の目的地は%sです！", MESSAGE[6].name),
         110, 410)
@@ -506,6 +494,20 @@ function love.draw()
     end
   end
 
+
+-- for funds
+  if FLAGS.move_on == false and FLAGS.arrival_flag == false then
+      love.graphics.setColor(0, 0, 0) 
+      love.graphics.rectangle("fill", 800, 120, 200, 60, 10)
+      love.graphics.setLineWidth(5)--枠線の太さ
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.rectangle("line", 800, 120, 196, 54, 10) --角を丸める
+      love.graphics.setLineWidth(1)--枠線の太さ
+
+    love.graphics.print(
+      string.format("資金%d万円", PLAYERS[FLAGS.currentP].funds),
+      810, 134)
+  end
 
   --display FLAGS for DEBUG
   --draw_debug_info()
@@ -703,11 +705,9 @@ function arrival_destination(player) --引数はPlayer構造体
   FLAGS.menuT = true
   FLAGS.walk_table = {}
   --FLAGS.arrival_flag = true
-
   --playerに賞金
-  local prize = ((math.floor(FLAGS.month / 12) * 0.1) + 1) * 100000
+  local prize = ((math.floor(FLAGS.month / 12) * 0.1) + 1) * 10000 --１億円
   player.funds = player.funds + prize
-
  --次の目的地を決める
   local removed_stations_table = {} --現在地以外の駅
   local old_target = nil -- 現在地
@@ -719,7 +719,6 @@ function arrival_destination(player) --引数はPlayer構造体
   end
 
   local random_count = math.random(1, #removed_stations_table)
-
   local new_target = removed_stations_table[random_count]
   FLAGS.destination_index = new_target.index --目的地変更
 
@@ -895,37 +894,11 @@ end
 --function updateCardMainMenuAfter() --new
 
 
-
-
-
---[[
---メニュー本文表示menuはメニュー構造体を受け取る
-function drawMenu(menu)
-  for i, item in ipairs(menu.items) do
-    if i == menu.selected then
-      love.graphics.setColor(1,1,0) --yellow
-    else 
-      love.graphics.setColor(1,1,1) --white
-    end
-    if menu == menuStateAfter.propertyMenuAfter then
-      love.graphics.print(
-        string.format("%s %s %d％ %d %s社長", 
-          item.name, item.attribute, item.yield, item.price, item.owner),
-        110, 330 + i * 30)
-    else
-      love.graphics.print(item, 810, 300 + i *30)
-    end
-  end
-end
-]]--
-
 function drawMenu(menu)
     for i, item in ipairs(menu.items) do
         -- 色設定
         love.graphics.setColor(i == menu.selected and {1,1,0} or {1,1,1})
 
- 
-        
         if menu == menuStateAfter.propertyMenuAfter then --移動語物件メニュー表示
             -- UTF-8対応の文字列切り取り
         local smart_price = nil
@@ -961,9 +934,6 @@ function drawMenu(menu)
     end
 
 end
-
-
-
 
 
 
@@ -1101,14 +1071,6 @@ end
 
 
 function update_current_cards() --各カード選択時に手動実行する
-  --current_card_before_names = {} --カード名だけ入る
---[[
-  CURRENT_CARD_BEFORE = {}
-  current_card_before_names = {}
-  CURRENT_CARD_AFTER = {}
-  current_card_after_names = {}
-  current_card_after_names = {}
-  ]]--
 
   for _, card in pairs(PLAYERS[FLAGS.currentP].cards) do
     if card.attribute == "交通系" then
