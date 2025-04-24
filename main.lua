@@ -271,6 +271,15 @@ function love.draw()
     --local coordinates = convert_index_coordinate(player1.coordinate)
     --love.graphics.draw(player1.image, coordinates[1], coordinates[2])
 
+--for player-name
+      love.graphics.setColor(0, 0, 0)
+      love.graphics.rectangle("fill", 800, 10, 200, 40, 10)
+      love.graphics.setLineWidth(5)--枠線の太さ
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.rectangle("line", 800, 12, 196, 44, 10) --角を丸める
+      love.graphics.setLineWidth(1)--枠線の太さ
+      love.graphics.print(
+        string.format("%s", PLAYERS[FLAGS.currentP].name), 810, 20)
 
   for i, currentP in pairs(PLAYERS) do
    love.graphics.setColor(1, 1, 1, 1)
@@ -380,7 +389,20 @@ function love.draw()
     end
   end
 
+-- for funds
+  if  FLAGS.arrival_flag == false then
+      love.graphics.setColor(0, 0, 0) 
+      love.graphics.rectangle("fill", 800, 70, 200, 70, 10)
+      love.graphics.setLineWidth(5)--枠線の太さ
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.rectangle("line", 800, 70, 196, 70, 10) --角を丸める
+      love.graphics.setLineWidth(1)--枠線の太さ
 
+      local smart_price = money_display(PLAYERS[FLAGS.currentP].funds)
+    love.graphics.print(
+      string.format("資金\n%s円", smart_price),
+      810, 78)
+  end
      
 
 
@@ -389,32 +411,27 @@ function love.draw()
  if FLAGS.move_on == true then
 
       love.graphics.setColor(0, 0, 0) 
-      love.graphics.rectangle("fill", 800, 120, 200, 60, 10)
-      love.graphics.rectangle("fill", 800, 200, 200, 60, 10)
+      love.graphics.rectangle("fill", 800, 160, 200, 60, 10)
+      love.graphics.rectangle("fill", 800, 220, 200, 60, 10)
       love.graphics.setLineWidth(5)--枠線の太さ
       love.graphics.setColor(1, 1, 1)
-      love.graphics.rectangle("line", 800, 120, 196, 54, 10) --角を丸める
-      love.graphics.rectangle("line", 800, 200, 196, 54, 10)
+      love.graphics.rectangle("line", 800, 160, 196, 54, 10) --角を丸める
+      love.graphics.rectangle("line", 800, 220, 196, 54, 10)
       love.graphics.setLineWidth(1)--枠線の太さ
 
     love.graphics.print(
       string.format("残り歩数:%02d歩", FLAGS.move_num),
-      810, 134)
+      810, 174)
     love.graphics.print(
       string.format("目的地迄:%02d歩",
       nextStation(PLAYERS[FLAGS.currentP].coordinate,
         FLAGS.destination_index,
         {}, 0)),
-      810, 214)
-    --デバッグ用インデックス表示
-    --love.graphics.print(FLAGS.walk_table, 810, 160)
-    --if #FLAGS.walk_table > 0 then 
-      --love.graphics.print(FLAGS.walk_table[#FLAGS.walk_table], 810, 190)
-       --end
-     end
+      810, 236)
+  end
 
     --for dice
-    if FLAGS.dice_go then
+  if FLAGS.dice_go == true then
       love.graphics.setColor(0, 0, 0) 
       love.graphics.rectangle("fill", 800, 320, 200, 180, 10)
       love.graphics.setLineWidth(5)--枠線の太さ
@@ -426,7 +443,7 @@ function love.draw()
         love.graphics.draw(dice_table[dice_num], 810, 300 + num * 50)
       end
       --love.graphics.draw(dice_table[dice.final_numbers[1]])
-    end
+  end
 
 
  --for message
@@ -437,6 +454,7 @@ function love.draw()
     end
 
     if (TOTAL_TIME - CURRENT_TIME_MESSAGE) < MESSAGE[3] then
+      --local v_width = 
       love.graphics.setColor(0, 0, 0) 
       love.graphics.rectangle("fill", 200, 420, 600, 50, 10)
       love.graphics.setLineWidth(5)--枠線の太さ
@@ -457,7 +475,7 @@ function love.draw()
           string.format("%s！　サイコロが%01d個になった", MESSAGE[1], MESSAGE[3]), 210, 430)
       elseif MESSAGE[2] == "use_card_mess_marusa" then --マルサカード使用
         love.graphics.print(
-          string.format("%s！　%sさんが国に%s円奪われた！", MESSAGE[1], MESSAGE[5][1], MESSAGE[5][2]), 210, 430)
+          string.format("%s！　%sさんが国に%s円奪われた！", MESSAGE[1], MESSAGE[5][1], money_display(MESSAGE[5][2])), 210, 430)
       end
     else
       FLAGS.message_disp_flag = false
@@ -503,30 +521,10 @@ function love.draw()
   end
 
 
--- for funds
-  if FLAGS.move_on == false and FLAGS.arrival_flag == false then
-      love.graphics.setColor(0, 0, 0) 
-      love.graphics.rectangle("fill", 800, 120, 200, 90, 10)
-      love.graphics.setLineWidth(5)--枠線の太さ
-      love.graphics.setColor(1, 1, 1)
-      love.graphics.rectangle("line", 800, 120, 196, 88, 10) --角を丸める
-      love.graphics.setLineWidth(1)--枠線の太さ
 
-      local smart_price = money_display(PLAYERS[FLAGS.currentP].funds)
-    love.graphics.print(
-      string.format("資金\n%s円", smart_price),
-      810, 134)
-  end
 
   --display FLAGS for DEBUG
   --draw_debug_info()
-  --[[
-  if FLAGS.menuM and current_card_before_names ~= {} then
-    love.graphics.setColor(0,0,0)
-    for i, card in pairs(current_card_before_names) do
-     love.graphics.print(card, 200, 200 + 30 * i)
-   end
-  end ]]--
 
 
 end
@@ -620,15 +618,6 @@ function love.update(dt)
     FLAGS.pending_dice_roll = nil
   end
 
---[[
-  if not FLAGS.message_disp_flag and FLAGS.pending_after_card then
-        FLAGS.pending_after_card = nil
-   FLAGS.currentP = nextP_index(FLAGS.currentP)
-    FLAGS.menuT = false
-    FLAGS.menuM = true
-
-  end
-  ]]--
 
 
 
@@ -637,6 +626,124 @@ function love.update(dt)
 end
 
 
+
+
+
+
+
+
+
+--ステートマシン関数 ---------------------------------------------------------------------------------------------
+
+function updateMainMenu()
+  local menu = menuState.mainMenu
+  if keyPressed["up"] then
+    menu.selected = (menu.selected - 2) % #menu.items + 1
+  elseif keyPressed["down"] then
+    menu.selected = menu.selected % #menu.items + 1
+  elseif keyPressed["return"] or keyPressed["space"] then
+    if menu.selected == 1 then
+      --FLAGS.menuM = false --以前はmainMenuだったのでエラーが起きるかも？
+      FLAGS.dice_go = true
+      roll_dice(1)
+    elseif menu.selected == 2 then
+      update_current_cards()
+      menuState.currentMenu = "cardmenu"
+    elseif menu.selected == 3 then
+      print("etc")
+    end
+  end
+end
+
+function updateCardMenu()
+    local menu = menuState.cardMenu
+    if keyPressed["up"] then
+      menu.selected = (menu.selected - 2) % #menu.items + 1
+    elseif keyPressed["down"] then
+      menu.selected = menu.selected % #menu.items + 1
+    elseif keyPressed["return"] or keyPressed["space"] then
+      usecard(CURRENT_CARD_BEFORE[menu.selected])
+    elseif keyPressed["escape"] then
+      menuState.currentmenu = "main"
+    end
+  end
+
+ 
+
+--到着後のメニューステートマシン関数
+
+function updateMainMenuAfter()
+  local menu = menuStateAfter.mainMenuAfter--初期値としてmainmenuafterをセット
+  if keyPressed["up"] then
+    if menu.selected == 1 then
+      menu.selected = #menu.items
+    else
+      menu.selected = menu.selected - 1
+    end
+  elseif keyPressed["down"] then
+    if menu.selected == #menu.items then
+      menu.selected = 1
+    else
+      menu.selected = menu.selected + 1
+    end
+  elseif keyPressed["return"] or keyPressed["space"] then
+    if menu.selected == 1 then
+      menuStateAfter.currentMenu = "propertymenuafter"
+    elseif menu.selected == 2 then
+      update_current_cards()
+      menuStateAfter.currentMenu = "cardmenuafter"
+    elseif menu.selected == 3 then
+      --ターン終了
+      FLAGS.menuT = false --menu vanish
+      if FLAGS.currentP == #PLAYERS then --next player
+        FLAGS.currentP = FLAGS.currentP + 1
+      else 
+        FLAGS.currentP = FLAGS.currentP + 1
+        update_all()
+        FLAGS.menuT = false
+        FLAGS.menuM = true
+        menuState.currentMenu = "main"
+      end
+    end
+  end
+end
+
+function updatePropertyMenuAfter()
+  local menu = menuStateAfter.propertyMenuAfter
+  if keyPressed["up"] then
+    if menu.selected == 1 then
+      menu.selected = #menu.items
+    else
+      menu.selected = menu.selected - 1
+    end
+  elseif keyPressed["down"] then
+    if menu.selected == #menu.items then
+      menu.selected = 1
+    else
+      menu.selected = menu.selected + 1
+    end
+  elseif keyPressed["return"] or keyPressed["space"] then
+    buyProperty(CURRENT_PROPERTY[menu.selected])
+    --updatePropertyAfterMenu() -- loop
+  elseif keyPressed["escape"] or keyPressed["q"] then
+    --前のメニューに戻る処理
+    menuStateAfter.currentMenu = "mainAfter"
+  end
+end
+
+
+function updateCardMenuAfter() --new
+    local menu = menuStateAfter.cardMenuAfter
+    if keyPressed["up"] then
+      menu.selected = (menu.selected - 2) % #menu.items + 1
+    elseif keyPressed["down"] then
+      menu.selected = menu.selected % #menu.items + 1
+    elseif keyPressed["return"] or keyPressed["space"] then
+      usecard(CURRENT_CARD_AFTER[menu.selected])
+    elseif keyPressed["escape"] then
+      menuState.currentmenu = "main"
+    end
+  end
 
 
 
@@ -803,152 +910,6 @@ function convert_index_coordinate(index)
 end
 
 
---ステートマシン関数 ---------------------------------------------------------------------------------------------
-
-function updateMainMenu()
-  local menu = menuState.mainMenu
-  if keyPressed["up"] then
-    menu.selected = (menu.selected - 2) % #menu.items + 1
-  elseif keyPressed["down"] then
-    menu.selected = menu.selected % #menu.items + 1
-  elseif keyPressed["return"] or keyPressed["space"] then
-    if menu.selected == 1 then
-      --FLAGS.menuM = false --以前はmainMenuだったのでエラーが起きるかも？
-      FLAGS.dice_go = true
-      roll_dice(1)
-    elseif menu.selected == 2 then
-      update_current_cards()
-      menuState.currentMenu = "cardmenu"
-    elseif menu.selected == 3 then
-      print("etc")
-    end
-  end
-end
-
-function updateCardMenu()
-    local menu = menuState.cardMenu
-    if keyPressed["up"] then
-      menu.selected = (menu.selected - 2) % #menu.items + 1
-    elseif keyPressed["down"] then
-      menu.selected = menu.selected % #menu.items + 1
-    elseif keyPressed["return"] or keyPressed["space"] then
-      usecard(CURRENT_CARD_BEFORE[menu.selected])
-    elseif keyPressed["escape"] then
-      menuState.currentmenu = "main"
-    end
-  end
-
---function updateCardDropMenu() -- new
-
---[[
-function updateCardMainMenu()
-  local menu = menuState.cardMainMenu
-  if keyPressed["up"] then
-    if menu.selected == 1 then
-      menu.selected = #menu.items
-    else
-      menu.selected = menu.selected - 1
-    end
-  elseif keyPressed["down"] then
-    if menu.selected == #menu.items then
-      menu.selected = 1
-    else
-      menu.selected = menu.selected + 1
-    end
-  elseif keyPressed["return"] or keyPressed["space"] then
-    if menu.selected == 1 then
-      menuState.currentmenu = "cardmenu"
-    elseif menu.selected == 2 then
-      menuState.currentmenu = "drop"
-    end
-  elseif keyPressed["escape"] or keyPressed["q"] then
-    --前のメニューに戻る処理
-    menuState.currentMenu = "main"
-  end
-end
-]]--
- 
-
---到着後のメニューステートマシン関数
-
-function updateMainMenuAfter()
-  local menu = menuStateAfter.mainMenuAfter--初期値としてmainmenuafterをセット
-  if keyPressed["up"] then
-    if menu.selected == 1 then
-      menu.selected = #menu.items
-    else
-      menu.selected = menu.selected - 1
-    end
-  elseif keyPressed["down"] then
-    if menu.selected == #menu.items then
-      menu.selected = 1
-    else
-      menu.selected = menu.selected + 1
-    end
-  elseif keyPressed["return"] or keyPressed["space"] then
-    if menu.selected == 1 then
-      menuStateAfter.currentMenu = "propertymenuafter"
-    elseif menu.selected == 2 then
-      update_current_cards()
-      menuStateAfter.currentMenu = "cardmenuafter"
-    elseif menu.selected == 3 then
-      --ターン終了
-      FLAGS.menuT = false --menu vanish
-      if FLAGS.currentP == #PLAYERS then --next player
-        FLAGS.currentP = FLAGS.currentP + 1
-      else 
-        FLAGS.currentP = FLAGS.currentP + 1
-        update_all()
-        FLAGS.menuT = false
-        FLAGS.menuM = true
-        menuState.currentMenu = "main"
-      end
-    end
-  end
-end
-
-function updatePropertyMenuAfter()
-  local menu = menuStateAfter.propertyMenuAfter
-  if keyPressed["up"] then
-    if menu.selected == 1 then
-      menu.selected = #menu.items
-    else
-      menu.selected = menu.selected - 1
-    end
-  elseif keyPressed["down"] then
-    if menu.selected == #menu.items then
-      menu.selected = 1
-    else
-      menu.selected = menu.selected + 1
-    end
-  elseif keyPressed["return"] or keyPressed["space"] then
-    buyProperty(CURRENT_PROPERTY[menu.selected])
-    --updatePropertyAfterMenu() -- loop
-  elseif keyPressed["escape"] or keyPressed["q"] then
-    --前のメニューに戻る処理
-    menuStateAfter.currentMenu = "mainAfter"
-  end
-end
-
-
-function updateCardMenuAfter() --new
-    local menu = menuStateAfter.cardMenuAfter
-    if keyPressed["up"] then
-      menu.selected = (menu.selected - 2) % #menu.items + 1
-    elseif keyPressed["down"] then
-      menu.selected = menu.selected % #menu.items + 1
-    elseif keyPressed["return"] or keyPressed["space"] then
-      usecard(CURRENT_CARD_AFTER[menu.selected])
-    elseif keyPressed["escape"] then
-      menuState.currentmenu = "main"
-    end
-  end
-
-
-
---function updateCardMainMenuAfter() --new
-
-
 function money_display(price) --> string
   local smart_price = nil
   local string_price = tostring(price)
@@ -973,20 +934,7 @@ function drawMenu(menu)
         love.graphics.setColor(i == menu.selected and {1,1,0} or {1,1,1})
 
         if menu == menuStateAfter.propertyMenuAfter then --移動語物件メニュー表示
-            -- UTF-8対応の文字列切り取り
-            --[[
-        local smart_price = nil
-        local string_price = tostring(item.price)
-        if string.len(string_price) > 4 then --1億以上
-          if getCharFromRight(string_price, 4) == "0" then --億ピッタリ
-            smart_price = string.sub(string_price, 1, -5) .. "億"
-          else
-            smart_price = string.sub(string_price, 1, -5) .. "億" .. string.sub(string_price, -4) .. "万"
-          end
-        else
-          smart_price = string.sub(string_price, -4) .. "万"
-        end
-        ]]--
+    
             local smart_price = money_display(item.price)
             local function utf8sub(str, start, len)
                 return str:sub(1, len*3) -- マルチバイト文字を考慮した簡易対応
@@ -1215,13 +1163,14 @@ function usecard(card)
     MESSAGE = {card.name, "use_card_mess_marusa", 5, 5, for_disp}
     remove_first(PLAYERS[FLAGS.currentP].cards, card)
     update_all()
+    --Turn end処理をちゃんと書かないといけない
     FLAGS.menuT = false
     FLAGS.menuM = true
     FLAGS.currentP = nextP_index(FLAGS.currentP)
   end
 end
 
-function random_rob_money(card) -->破壊的変更 & table for display
+function random_rob_money(card) -->table for display
   local random_num = math.random(1, #PLAYERS)
   local rob_money = math.floor(PLAYERS[random_num].funds * card.power)
   PLAYERS[random_num].funds = PLAYERS[random_num].funds - rob_money
