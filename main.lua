@@ -611,11 +611,14 @@ function love.update(dt)
   TOTAL_TIME = TOTAL_TIME + dt
 
   -- メッセージ表示終了後の処理
-  if not FLAGS.message_disp_flag and FLAGS.pending_dice_roll then
+  if not FLAGS.message_disp_flag and FLAGS.pending_dice_roll[1] == "koutu" then
     FLAGS.menuM = false
     FLAGS.dice_go = true
-    roll_dice(FLAGS.pending_dice_roll.power)
+    roll_dice(FLAGS.pending_dice_roll[2])
     FLAGS.pending_dice_roll = nil
+  elseif not FLAGS.message_disp_flag and FLAGS.pending_dice_roll[1] == "marusa" then
+    FLAGS.pending_dice_roll = nil
+    turn_end()
   end
 
 
@@ -1152,7 +1155,7 @@ function usecard(card)
   if card.attribute == "交通系" then
     FLAGS.message_disp_flag = true
     MESSAGE = {card.name, "use_card_mess_koutuu", card.power, 5}
-    FLAGS.pending_dice_roll = {power = card.power} -- 保留中のサイコロ情報
+    FLAGS.pending_dice_roll = {"koutu", card.power} -- 保留中のサイコロ情報
     -- カードを使用するとリストから減らす関数を書く
     remove_first(PLAYERS[FLAGS.currentP].cards, card)
     update_all()
@@ -1161,12 +1164,13 @@ function usecard(card)
     FLAGS.message_disp_flag = true
     FLAGS.pending_after_card = 3
     MESSAGE = {card.name, "use_card_mess_marusa", 5, 5, for_disp}
+    FLAGS.pending_dice_roll = "marusa"
     remove_first(PLAYERS[FLAGS.currentP].cards, card)
     update_all()
     --Turn end処理をちゃんと書かないといけない
-    FLAGS.menuT = false
-    FLAGS.menuM = true
-    FLAGS.currentP = nextP_index(FLAGS.currentP)
+    --FLAGS.menuT = false
+    --FLAGS.menuM = true
+    --FLAGS.currentP = nextP_index(FLAGS.currentP)
   end
 end
 
@@ -1178,6 +1182,14 @@ function random_rob_money(card) -->table for display
 end
 
 --ターンエンド関数を書く、処理をまとめておこなうもの
+function turn_end()
+  FLAGS.menuT = false
+  FLAGS.currentP = nextP_index(FLAGS.currentP)
+  FLAGS.menuM = true
+end
+
+
+
 
 
 
