@@ -474,8 +474,15 @@ function love.draw()
         love.graphics.print(
           string.format("%s！　サイコロが%01d個になった", MESSAGE[1], MESSAGE[3]), 210, 430)
       elseif MESSAGE[2] == "use_card_mess_marusa" then --マルサカード使用
-        love.graphics.print(
-          string.format("%s！　%sさんが国に%s円奪われた！", MESSAGE[1], MESSAGE[5][1], money_display(MESSAGE[5][2])), 210, 430)
+      local message_strings = string.format("%s！　%sさんが国に%s円奪われた！", MESSAGE[1], MESSAGE[5][1], money_display(MESSAGE[5][2]))
+      local strings_length = #message_strings
+      love.graphics.setColor(0, 0, 0) 
+      love.graphics.rectangle("fill", 200, 420, strings_length * 10, 50, 10)
+      love.graphics.setLineWidth(5)--枠線の太さ
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.rectangle("line", 200, 420, strings_length * 10, 46, 10) --角を丸める
+      love.graphics.setLineWidth(1)--枠線の太さ
+      love.graphics.print(message_strings, 210, 430)
       end
     else
       FLAGS.message_disp_flag = false
@@ -491,26 +498,39 @@ function love.draw()
     if CURRENT_TIME_MESSAGE == nil then
       CURRENT_TIME_MESSAGE = TOTAL_TIME
     end
+
+    if (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 5 then
+      local message_strings = string.format("%sさんが%sに一番乗りです！", MESSAGE[1], MESSAGE[5].name)
+      local strings_length = #message_strings
       love.graphics.setColor(0, 0, 0) 
-      love.graphics.rectangle("fill", 100, 400, 650, 50, 10)
+      love.graphics.rectangle("fill", 100, 400, strings_length * 10, 50, 10)
       love.graphics.setLineWidth(5)--枠線の太さ
       love.graphics.setColor(1, 1, 1)
-      love.graphics.rectangle("line", 100, 400, 650, 50, 10) --角を丸める
+      love.graphics.rectangle("line", 100, 400, strings_length * 10, 50, 10) --角を丸める
       love.graphics.setLineWidth(1)--枠線の太さ
-    if (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 5 then
-         love.graphics.print(
-        string.format("%sさんが%sに一番乗りです！", MESSAGE[1], MESSAGE[5].name), 
-        110, 410)
+      love.graphics.print(message_strings, 110, 410)
       --sleep(3)
     elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 8 then
-      love.graphics.print(
-        string.format("%sさんには賞金として%s円が進呈されます！", MESSAGE[1], money_display(MESSAGE[4])),
-        110, 410)
+      local message_strings = string.format("%sさんには賞金として%s円が進呈されます！", MESSAGE[1], money_display(MESSAGE[4]))
+      local strings_length = #message_strings
+      love.graphics.setColor(0, 0, 0) 
+      love.graphics.rectangle("fill", 100, 400, strings_length * 10, 50, 10)
+      love.graphics.setLineWidth(5)--枠線の太さ
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.rectangle("line", 100, 400, strings_length * 10, 50, 10) --角を丸める
+      love.graphics.setLineWidth(1)--枠線の太さ
+      love.graphics.print(message_strings, 110, 410)
       --sleep(3)
     elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 12 then
-      love.graphics.print(
-        string.format("次の目的地は%sです！", MESSAGE[6].name),
-        110, 410)
+      local message_strings = string.format("次の目的地は%sです！", MESSAGE[6].name)
+      local strings_length = #message_strings
+      love.graphics.setColor(0, 0, 0) 
+      love.graphics.rectangle("fill", 100, 400, strings_length * 10, 50, 10)
+      love.graphics.setLineWidth(5)--枠線の太さ
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.rectangle("line", 100, 400, strings_length * 10, 50, 10) --角を丸める
+      love.graphics.setLineWidth(1)--枠線の太さ
+      love.graphics.print(message_strings, 110, 410)
     else
       FLAGS.arrival_flag = false
       CURRENT_TIME_MESSAGE = nil
