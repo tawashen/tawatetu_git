@@ -611,15 +611,17 @@ function love.update(dt)
   TOTAL_TIME = TOTAL_TIME + dt
 
   -- メッセージ表示終了後の処理
-  if not FLAGS.message_disp_flag and FLAGS.pending_dice_roll[1] == "koutu" then
+  if not FLAGS.message_disp_flag and FLAGS.pending_dice_roll then
+    if FLAGS.pending_dice_roll[1] == "koutu" then
     FLAGS.menuM = false
     FLAGS.dice_go = true
     roll_dice(FLAGS.pending_dice_roll[2])
     FLAGS.pending_dice_roll = nil
-  elseif not FLAGS.message_disp_flag and FLAGS.pending_dice_roll[1] == "marusa" then
+  elseif FLAGS.pending_dice_roll == "marusa" then
     FLAGS.pending_dice_roll = nil
     turn_end()
   end
+end
 
 
 
@@ -667,7 +669,7 @@ function updateCardMenu()
     elseif keyPressed["return"] or keyPressed["space"] then
       usecard(CURRENT_CARD_BEFORE[menu.selected])
     elseif keyPressed["escape"] then
-      menuState.currentmenu = "main"
+      menuState.currentmenu = "mainmenu"
     end
   end
 
@@ -705,7 +707,7 @@ function updateMainMenuAfter()
         update_all()
         FLAGS.menuT = false
         FLAGS.menuM = true
-        menuState.currentMenu = "main"
+        menuState.currentMenu = "mainmenuafter"
       end
     end
   end
@@ -730,7 +732,7 @@ function updatePropertyMenuAfter()
     --updatePropertyAfterMenu() -- loop
   elseif keyPressed["escape"] or keyPressed["q"] then
     --前のメニューに戻る処理
-    menuStateAfter.currentMenu = "mainAfter"
+    menuStateAfter.currentMenu = "mainmenuafter"
   end
 end
 
@@ -744,7 +746,7 @@ function updateCardMenuAfter() --new
     elseif keyPressed["return"] or keyPressed["space"] then
       usecard(CURRENT_CARD_AFTER[menu.selected])
     elseif keyPressed["escape"] then
-      menuState.currentmenu = "main"
+      menuState.currentmenu = "mainmenuafter"
     end
   end
 
@@ -954,6 +956,7 @@ function drawMenu(menu)
             
             love.graphics.print(text, 110, 330 + i * 30)
         elseif menu == menuState.cardMenu or menu == menuStateAfter.cardMenuAfter then --移動前カード一覧表示
+          --update_all()
             love.graphics.print(item, 610, 300 + i *30)
         else
             love.graphics.print(item, 810, 300 + i *30)
