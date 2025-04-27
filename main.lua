@@ -157,7 +157,7 @@ C_marusa = {name = "マルサカード", attribute = "マルサ", price = 5000, 
     menuM = true, --移動前メニュー表示フラグ 
     menuT = false, --移動後メニュー表示フラグ
     menuC = false, --カード表示フラグ
-    dice_go = false, dice_num = 1, move_on = false, month = 4,
+    dice_go = false, dice_num = 1, move_on = false, month = 4, year = 1,
     move_num = 0, walk_table = {}, 
     destination_index = 51, --目的地インデックス
     message_disp_flag = false, --画面にメッセージを表示するフラグ
@@ -198,8 +198,6 @@ current_card_before_names = {}
 CURRENT_CARD_BEFORE = {} --移動前カードテーブル
 current_card_after_names = {} 
 CURRENT_CARD_AFTER = {} --移動後カードテーブル
-
-
 
 
 menuState = { --menuState構造体 到着前メニュー
@@ -388,6 +386,17 @@ function love.draw()
       ]]--
     end
   end
+
+-- for month and year
+  love.graphics.setColor(0, 0, 0) 
+  love.graphics.rectangle("fill", 800, 500, 200, 70, 10)
+  love.graphics.setLineWidth(5)--枠線の太さ
+  love.graphics.setColor(1, 1, 1)
+  love.graphics.rectangle("line", 800, 500, 196, 70, 10) --角を丸める
+  love.graphics.setLineWidth(1)--枠線の太さ
+  love.graphics.print(
+    string.format("%d年目\n%d月", FLAGS.year, FLAGS.month),
+    810, 508)
 
 -- for funds
   if  FLAGS.arrival_flag == false then
@@ -775,9 +784,16 @@ function updateCardMenuAfter() --new
 
 -- created original functions -----------------------------------------------------------------------------
 
-function nextP_index(num) --> num
+function nextP_index(num) --> num & destroy
   if num == #PLAYERS then
-    return 1
+    if FLAGS.month == 12 then --現在12月なら
+      FLAGS.month = 1--1月にして
+      FLAGS.year = FLAGS.year + 1--年を進める
+      return 1
+    else--12月以外なら
+      FLAGS.month = FLAGS.month + 1--月を進めるだけ
+      return 1
+    end
   else return num + 1
   end
 end
@@ -1047,9 +1063,9 @@ end
 
 --駅以外の場所に止まった場合の処理を追加する
 function end_movement()
-    FLAGS.dice_go = false
-    FLAGS.menuM = false
-    FLAGS.move_on = false
+  FLAGS.dice_go = false
+  FLAGS.menuM = false
+  FLAGS.move_on = false
     --FLAGS.menuT = true
     FLAGS.walk_table = {}
     --目的地到着
@@ -1063,9 +1079,22 @@ function end_movement()
       update_current_properties_name()
       update_menu_state()
       FLAGS.menuT = true
-    else 
-      FLAGS.menuT = false
-    end
+    else
+    if map[PLAYERS[FLAGS.currentP].coordinate] == 5 then -- red
+      PLAYERS[FLAGS.currentP].funds = PLAYERS[FLAGS.currentP].funds - 1000
+      turn_end()
+    elseif map[PLAYERS[FLAGS.currentP].coordinate] == 3 then -- blue
+      PLAYERS[FLAGS.currentP].funds = PLAYERS[FLAGS.currentP].funds + 1000
+      turn_end()
+      --[[
+    elseif map[PLAYERS[FLAGS.currentP].coordinate] == 4 then -- yellow
+      table.insert(PLAYERS[FLAGS.currentP].cards, C_tokkyu)
+      turn_end()
+      ]]--
+   -- else 
+     -- FLAGS.menuT = false
+   end
+ end
 
     --print("移動終了")
 end
@@ -1121,7 +1150,12 @@ end
 
 
 function update_current_cards() --各カード選択時に手動実行する
-
+--[[
+  CURRENT_CARD_BEFORE = {}
+  CURRENT_CARD_AFTER = {}
+  current_card_before_names = {}
+  current_card_after_names = {}
+]]--
   for _, card in pairs(PLAYERS[FLAGS.currentP].cards) do
     if card.attribute == "交通系" then
       table.insert(CURRENT_CARD_BEFORE, card)
@@ -1135,7 +1169,7 @@ function update_current_cards() --各カード選択時に手動実行する
 end
 
 function update_current_properties() --プロパティをいじるときには呼び出す
-  CURRENT_PROPERTY =  STATIONS_TABLE[PLAYERS[FLAGS.currentP].coordinate].properties
+ CURRENT_PROPERTY =  STATIONS_TABLE[PLAYERS[FLAGS.currentP].coordinate].properties
 end
 
 function update_current_properties_name()--プロパティの名前を破壊的生成
@@ -1149,10 +1183,10 @@ end
 
 function update_menu_state()
 
-menuState.cardMenu.items = current_card_before_names
+  menuState.cardMenu.items = current_card_before_names
 
-menuStateAfter.propertyMenuAfter.items = CURRENT_PROPERTY
-menuStateAfter.cardMenuAfter.items = current_card_after_names
+  menuStateAfter.propertyMenuAfter.items = CURRENT_PROPERTY
+  menuStateAfter.cardMenuAfter.items = current_card_after_names
 
 end
 
@@ -1206,6 +1240,12 @@ end
 
 --ターンエンド関数を書く、処理をまとめておこなうもの
 function turn_end()
+  menuState.currentMenu = "mainmenu"
+  menuState.mainMenu.seletcted = 1
+  menuState.cardMenu.selected = 1
+  menuStateAfter.currentMenu = "mainmenuafter"
+  menuStateAfter.mainMenuAfter.seletcted = 1
+  menuStateAfter.cardMenuAfter.selected = 1
   FLAGS.menuT = false
   FLAGS.currentP = nextP_index(FLAGS.currentP)
   FLAGS.menuM = true
