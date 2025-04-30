@@ -143,7 +143,7 @@ C_tokkyu = {name = "特急カード", attribute = "交通系", price = 3000, pow
 C_marusa = {name = "マルサカード", attribute = "マルサ", price = 5000, power = 0.5}
 
   player1 = {name = "player1", money = 0, coordinate = 43, cards = {C_kyukou, C_tokkyu, C_marusa}, image = Pred_image, funds = 5000, id = 1}
-  player2 = {name = "player2", money = 0, coordinate = 43, cards = {}, image = Pblue_image, funds = 2000, id = 2}
+  player2 = {name = "player2", money = 0, coordinate = 43, cards = {C_kyukou, C_tokkyu}, image = Pblue_image, funds = 2000, id = 2}
   PLAYERS = {player1, player2}
   
 
@@ -165,33 +165,16 @@ C_marusa = {name = "マルサカード", attribute = "マルサ", price = 5000, 
     pending_dice_roll = nil
 
   }
---totalP = player numbers, currentP = current player's numeber, menuM = main menu, menuC = card manu,
 
  draw_map()
 
 --menu repeat issue resolve no change?
  love.keyboard.setKeyRepeat(false)
 
+--propertyーーーー
 
-
-
---property
-
-
-
-
-
---CURRENT_PROPERTY = {}
 CURRENT_PROPERTY = {}
 CURRENT_PROPERTY_NAMES = {}
-
-
-
-
-
-
---card data for menu test
---test_cards = {C_kyukou, C_tokkyu, C_marusa, C_marusa}
 
 -- menu display 
 current_card_before_names = {} 
@@ -300,9 +283,9 @@ function love.draw()
 
    love.graphics.origin()
 
-   --for menu
 
-  
+
+   --for menu  
   --メニュー呼び出し用フラグを破壊的変更
    if FLAGS.menuM then --FLAGS.menuM acticve
 
@@ -330,6 +313,8 @@ function love.draw()
     --menuState.currentMenu == "carddropmenu"
     --menuState.currentMenu == "cardmenuafter"
     then --カード一覧表示
+    update_current_cards()
+    update_menu_state()
     local v_height = #menuState.cardMenu.items * 30 + 20
       love.graphics.setColor(0, 0, 0) 
       love.graphics.rectangle("fill", 600, 320, 200, v_height, 10)
@@ -343,7 +328,7 @@ function love.draw()
   end
 
   --到着後メニュー呼び出しフラグを破壊的変更
-  if FLAGS.menuT then --到着後メニュー表示フラグON
+  if FLAGS.menuT and FLAGS.arrival_flag == false then --到着後メニュー表示フラグON
     if menuStateAfter.currentMenu == "mainmenuafter" then --最初のメニュー
       local v_height = #menuStateAfter.mainMenuAfter.items * 30 + 20 
         love.graphics.setColor(0, 0, 0) 
@@ -365,7 +350,9 @@ function love.draw()
       drawMenu(menuStateAfter.propertyMenuAfter)
 
     elseif menuStateAfter.currentMenu == "cardmenuafter" then --到着後カードメニュー表示
-    local v_height = #menuState.cardMenu.items * 30 + 20
+    update_current_cards()
+    update_menu_state()
+    local v_height = #menuStateAfter.cardMenuAfter.items * 30 + 20
       love.graphics.setColor(0, 0, 0) 
       love.graphics.rectangle("fill", 600, 320, 200, v_height, 10)
       love.graphics.setLineWidth(5)--枠線の太さ
@@ -373,6 +360,9 @@ function love.draw()
       love.graphics.rectangle("line", 602, 320, 194, (v_height - 2), 10) --角を丸める
       love.graphics.setLineWidth(1)--枠線の太さ
       drawMenu(menuStateAfter.cardMenuAfter)
+
+ 
+
 --[[
     elseif menuStateAfter.currentMenu == "cardmainmenuafter" then
     local v_height = #menuState.cardMenu.items * 30 + 20
@@ -458,6 +448,7 @@ function love.draw()
  --for message
 
   if FLAGS.message_disp_flag == true then
+    FLAGS.menuT = false
     if CURRENT_TIME_MESSAGE == nil then
        CURRENT_TIME_MESSAGE = TOTAL_TIME
     end
@@ -497,6 +488,7 @@ function love.draw()
       FLAGS.message_disp_flag = false
       CURRENT_TIME_MESSAGE = nil
       MESSAGE = {}
+      FLAGS.menuT = true
     end
   end
 
@@ -592,14 +584,16 @@ function love.keypressed(key)
 
 
     --メニュー移動キー入力
-  if FLAGS.menuM or FLAGS.menuT then --menu active
+  if FLAGS.menuM or FLAGS.menuT and FLAGS.arrival_flag == false then --menu activeかつ到着処理中ではない
        keyPressed[key] = true
      end
 
     --Message表示中であれば
   if FLAGS.message_disp_flag then
         if key == "space" or key == "return" then
+          FLAGS.arrival_flag = false
           FLAGS.message_disp_flag = false
+          FLAGS.pending_dice_roll = nil --------------------------------------------------------
           CURRENT_TIME_MESSAGE = nil
           MESSAGE = {}
         end
@@ -682,6 +676,7 @@ function updateMainMenu()
       roll_dice(1)
     elseif menu.selected == 2 then
       update_current_cards()
+      update_menu_state()
       menuState.currentMenu = "cardmenu"
     elseif menu.selected == 3 then
       print("etc")
@@ -690,6 +685,8 @@ function updateMainMenu()
 end
 
 function updateCardMenu()
+    update_current_cards()
+    update_menu_state()
     local menu = menuState.cardMenu
     if keyPressed["up"] then
       menu.selected = (menu.selected - 2) % #menu.items + 1
@@ -725,6 +722,7 @@ function updateMainMenuAfter()
       menuStateAfter.currentMenu = "propertymenuafter"
     elseif menu.selected == 2 then
       update_current_cards()
+      update_menu_state()
       menuStateAfter.currentMenu = "cardmenuafter"
     elseif menu.selected == 3 then
       --ターン終了
@@ -767,6 +765,8 @@ end
 
 
 function updateCardMenuAfter() --new
+    update_current_cards()
+    update_menu_state()
     local menu = menuStateAfter.cardMenuAfter
     if keyPressed["up"] then
       menu.selected = (menu.selected - 2) % #menu.items + 1
@@ -970,6 +970,8 @@ end
 
 
 function drawMenu(menu)
+  update_current_cards()
+  update_menu_state()
     for i, item in ipairs(menu.items) do
         -- 色設定
         love.graphics.setColor(i == menu.selected and {1,1,0} or {1,1,1})
@@ -992,7 +994,7 @@ function drawMenu(menu)
             
             love.graphics.print(text, 110, 330 + i * 30)
         elseif menu == menuState.cardMenu or menu == menuStateAfter.cardMenuAfter then --移動前カード一覧表示
-          --update_all()
+          update_all()
             love.graphics.print(item, 610, 300 + i *30)
         else
             love.graphics.print(item, 810, 300 + i *30)
@@ -1150,12 +1152,12 @@ end
 
 
 function update_current_cards() --各カード選択時に手動実行する
---[[
+
   CURRENT_CARD_BEFORE = {}
   CURRENT_CARD_AFTER = {}
   current_card_before_names = {}
   current_card_after_names = {}
-]]--
+
   for _, card in pairs(PLAYERS[FLAGS.currentP].cards) do
     if card.attribute == "交通系" then
       table.insert(CURRENT_CARD_BEFORE, card)
@@ -1215,7 +1217,7 @@ function usecard(card)
     FLAGS.pending_dice_roll = {"koutu", card.power} -- 保留中のサイコロ情報
     -- カードを使用するとリストから減らす関数を書く
     remove_first(PLAYERS[FLAGS.currentP].cards, card)
-    update_all()
+    update_current_cards()
   elseif card.attribute == "マルサ" then
     local for_disp = random_rob_money(card)
     FLAGS.message_disp_flag = true
@@ -1223,7 +1225,7 @@ function usecard(card)
     MESSAGE = {card.name, "use_card_mess_marusa", 5, 5, for_disp}
     FLAGS.pending_dice_roll = "marusa"
     remove_first(PLAYERS[FLAGS.currentP].cards, card)
-    update_all()
+    update_current_cards()
     --Turn end処理をちゃんと書かないといけない
     --FLAGS.menuT = false
     --FLAGS.menuM = true
@@ -1240,12 +1242,17 @@ end
 
 --ターンエンド関数を書く、処理をまとめておこなうもの
 function turn_end()
+  current_card_before_names = {} 
+  CURRENT_CARD_BEFORE = {} --移動前カードテーブル
+  current_card_after_names = {} 
+  CURRENT_CARD_AFTER = {} --移動後カードテーブル
   menuState.currentMenu = "mainmenu"
-  menuState.mainMenu.seletcted = 1
+  menuState.mainMenu.selected = 1
   menuState.cardMenu.selected = 1
   menuStateAfter.currentMenu = "mainmenuafter"
-  menuStateAfter.mainMenuAfter.seletcted = 1
+  menuStateAfter.mainMenuAfter.selected = 1
   menuStateAfter.cardMenuAfter.selected = 1
+  update_menu_state()
   FLAGS.menuT = false
   FLAGS.currentP = nextP_index(FLAGS.currentP)
   FLAGS.menuM = true
