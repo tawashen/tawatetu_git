@@ -132,10 +132,10 @@ P_sizyounawate_shrine = {name = "四條畷神社　　　　　", attribute = "�
 
 St_Sizyounawate = {name = "四条畷駅",
     properties = {P_yumebanchi, P_morineki, P_nisikimati_c_park, P_sizyounawate_shrine},
-    index = 51
+    index = 55
     }
 
-STATIONS_TABLE = {[43] = St_Hoshida, [51] = St_Sizyounawate}
+STATIONS_TABLE = {[43] = St_Hoshida, [55] = St_Sizyounawate}
 
 --card data
 C_kyukou = {name = "急行カード", attribute = "交通系", price = 1000, power = 2}
@@ -159,10 +159,10 @@ C_marusa = {name = "マルサカード", attribute = "マルサ", price = 5000, 
     menuC = false, --カード表示フラグ
     dice_go = false, dice_num = 1, move_on = false, month = 4, year = 1,
     move_num = 0, walk_table = {}, 
-    destination_index = 51, --目的地インデックス
+    destination_index = 55, --目的地インデックス
     message_disp_flag = false, --画面にメッセージを表示するフラグ
     arrival_flag = false, --目的地到達フラグ
-    pending_dice_roll = nil
+    pending_action = nil
 
   }
 
@@ -252,6 +252,7 @@ function love.draw()
     --local coordinates = convert_index_coordinate(player1.coordinate)
     --love.graphics.draw(player1.image, coordinates[1], coordinates[2])
 
+
 --for player-name
       love.graphics.setColor(0, 0, 0)
       love.graphics.rectangle("fill", 800, 10, 200, 40, 10)
@@ -262,6 +263,23 @@ function love.draw()
       love.graphics.print(
         string.format("%s", PLAYERS[FLAGS.currentP].name), 810, 20)
 
+
+-- for station name
+if FLAGS.arrival_flag == false then
+for _, station in pairs(STATIONS_TABLE) do
+  local x_y = convert_index_coordinate(station.index)
+      love.graphics.setColor(0, 0, 0)
+      love.graphics.rectangle("fill", x_y[1] -40, x_y[2] - 40, 120, 40, 10)
+      love.graphics.setLineWidth(5)--枠線の太さ
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.rectangle("line", x_y[1] -40, x_y[2] - 40, 120, 40, 10) --角を丸める
+      love.graphics.setLineWidth(1)--枠線の太さ
+      love.graphics.print(
+        string.format("%s", station.name), x_y[1] - 30, x_y[2] - 32)
+    end
+  end
+
+--for player-image
   for i, currentP in pairs(PLAYERS) do
    love.graphics.setColor(1, 1, 1, 1)
    if i ~= FLAGS.currentP then
@@ -500,7 +518,7 @@ function love.draw()
       CURRENT_TIME_MESSAGE = TOTAL_TIME
     end
 
-    if (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 5 then
+    if (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 3 then
       local message_strings = string.format("%sさんが%sに一番乗りです！", MESSAGE[1], MESSAGE[5].name)
       local strings_length = #message_strings
       love.graphics.setColor(0, 0, 0) 
@@ -511,7 +529,7 @@ function love.draw()
       love.graphics.setLineWidth(1)--枠線の太さ
       love.graphics.print(message_strings, 110, 410)
       --sleep(3)
-    elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 8 then
+    elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 6 then
       local message_strings = string.format("%sさんには賞金として%s円が進呈されます！", MESSAGE[1], money_display(MESSAGE[4]))
       local strings_length = #message_strings
       love.graphics.setColor(0, 0, 0) 
@@ -522,7 +540,7 @@ function love.draw()
       love.graphics.setLineWidth(1)--枠線の太さ
       love.graphics.print(message_strings, 110, 410)
       --sleep(3)
-    elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 12 then
+    elseif (TOTAL_TIME - CURRENT_TIME_MESSAGE) < 9 then
       local message_strings = string.format("次の目的地は%sです！", MESSAGE[6].name)
       local strings_length = #message_strings
       love.graphics.setColor(0, 0, 0) 
@@ -593,7 +611,7 @@ function love.keypressed(key)
         if key == "space" or key == "return" then
           FLAGS.arrival_flag = false
           FLAGS.message_disp_flag = false
-          FLAGS.pending_dice_roll = nil --------------------------------------------------------
+          FLAGS.pending_action = nil --------------------------------------------------------
           CURRENT_TIME_MESSAGE = nil
           MESSAGE = {}
         end
@@ -634,32 +652,19 @@ function love.update(dt)
   TOTAL_TIME = TOTAL_TIME + dt
 
   -- メッセージ表示終了後の処理
-  if not FLAGS.message_disp_flag and FLAGS.pending_dice_roll then
-    if FLAGS.pending_dice_roll[1] == "koutu" then
+  if not FLAGS.message_disp_flag and FLAGS.pending_action then
+    if FLAGS.pending_action[1] == "koutu" then
     FLAGS.menuM = false
     FLAGS.dice_go = true
-    roll_dice(FLAGS.pending_dice_roll[2])
-    FLAGS.pending_dice_roll = nil
-  elseif FLAGS.pending_dice_roll == "marusa" then
-    FLAGS.pending_dice_roll = nil
+    roll_dice(FLAGS.pending_action[2])
+    FLAGS.pending_action = nil
+  elseif FLAGS.pending_action == "marusa" then
+    FLAGS.pending_action = nil
     turn_end()
   end
 end
 
-
-
-
-  --update_current_cards()
-
 end
-
-
-
-
-
-
-
-
 
 --ステートマシン関数 ---------------------------------------------------------------------------------------------
 
@@ -1024,7 +1029,7 @@ function roll_dice(num, callback)
     end
 
     -- 10回目で終了
-    if dice.count >= 10 then
+    if dice.count >= 3 then
       Timer.cancel(timer) -- タイマー停止
       dice.isRolling = false
       dice.final_numbers = dice.numbers -- 最終結果を保存
@@ -1088,13 +1093,9 @@ function end_movement()
     elseif map[PLAYERS[FLAGS.currentP].coordinate] == 3 then -- blue
       PLAYERS[FLAGS.currentP].funds = PLAYERS[FLAGS.currentP].funds + 1000
       turn_end()
-      --[[
     elseif map[PLAYERS[FLAGS.currentP].coordinate] == 4 then -- yellow
       table.insert(PLAYERS[FLAGS.currentP].cards, C_tokkyu)
       turn_end()
-      ]]--
-   -- else 
-     -- FLAGS.menuT = false
    end
  end
 
@@ -1186,7 +1187,6 @@ end
 function update_menu_state()
 
   menuState.cardMenu.items = current_card_before_names
-
   menuStateAfter.propertyMenuAfter.items = CURRENT_PROPERTY
   menuStateAfter.cardMenuAfter.items = current_card_after_names
 
@@ -1214,7 +1214,7 @@ function usecard(card)
   if card.attribute == "交通系" then
     FLAGS.message_disp_flag = true
     MESSAGE = {card.name, "use_card_mess_koutuu", card.power, 5}
-    FLAGS.pending_dice_roll = {"koutu", card.power} -- 保留中のサイコロ情報
+    FLAGS.pending_action = {"koutu", card.power} -- 保留中のサイコロ情報
     -- カードを使用するとリストから減らす関数を書く
     remove_first(PLAYERS[FLAGS.currentP].cards, card)
     update_current_cards()
@@ -1223,13 +1223,9 @@ function usecard(card)
     FLAGS.message_disp_flag = true
     FLAGS.pending_after_card = 3
     MESSAGE = {card.name, "use_card_mess_marusa", 5, 5, for_disp}
-    FLAGS.pending_dice_roll = "marusa"
+    FLAGS.pending_action = "marusa"
     remove_first(PLAYERS[FLAGS.currentP].cards, card)
     update_current_cards()
-    --Turn end処理をちゃんと書かないといけない
-    --FLAGS.menuT = false
-    --FLAGS.menuM = true
-    --FLAGS.currentP = nextP_index(FLAGS.currentP)
   end
 end
 
